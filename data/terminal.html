@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>GH Node Terminal</title>
+    <style>
+      :root {
+        --bg: #282a36;
+        --fg: #f8f8f2;
+        --muted: #6272a4;
+        --cyan: #6fd6ff;
+        --accent: #8be9fd;
+        --green: #50fa7b;
+        --line: #44475a;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier,
+          monospace;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      #header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.35),
+          rgba(0, 0, 0, 0.18)
+        );
+        box-sizing: border-box;
+        border-bottom: 1px solid var(--line);
+        z-index: 60;
+      }
+      #header-left {
+        display: flex;
+        flex-direction: column;
+      }
+      #title {
+        font-weight: 700;
+        font-size: 16px;
+      }
+      #node-info {
+        font-size: 13px;
+        color: var(--cyan);
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+      }
+      #node-gh {
+        font-weight: 600;
+        color: var(--accent);
+      }
+      #node-fw {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      #header-right {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .hdr-btn {
+        background: transparent;
+        color: var(--fg);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 8px 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      #status {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: 13px;
+      }
+      #status-ind {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+      #status-ind.connected {
+        background: var(--green);
+      }
+      #status-text {
+        font-size: 12px;
+        color: var(--fg);
+        opacity: 0.95;
+      }
+      #console {
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
+        padding: 12px 12px 20px 12px;
+        box-sizing: border-box;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: pre-wrap;
+        font-family: "Courier New", Courier, monospace;
+        line-height: 1;
+        font-size: clamp(9px, 2.2vw, 13px);
+        overflow-wrap: break-word;
+      }
+      .ascii-wrap {
+        display: block;
+      }
+      .ascii-banner {
+        color: var(--cyan);
+        font-weight: 700;
+        display: block;
+        white-space: pre;
+        line-height: 0.95;
+        margin-bottom: 6px;
+        font-size: 28px;
+        letter-spacing: 0;
+        word-break: normal;
+      }
+      .system-msg {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 6px;
+      }
+      #input-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: env(safe-area-inset-bottom, 0);
+        padding: 12px;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        background: linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.22),
+          rgba(0, 0, 0, 0.08)
+        );
+        z-index: 70;
+        transition: bottom 160ms ease;
+      }
+      #input-inner {
+        width: 100%;
+        max-width: 980px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      #prompt {
+        color: var(--green);
+        font-weight: 700;
+        padding-left: 6px;
+      }
+      #cmd-input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: transparent;
+        color: var(--fg);
+        font-family: SFMono-Regular, monospace;
+        font-size: 14px;
+        outline: none;
+      }
+      #send {
+        padding: 10px 14px;
+        border-radius: 8px;
+        border: none;
+        background: var(--accent);
+        color: #041416;
+        font-weight: 800;
+        cursor: pointer;
+        min-width: 74px;
+      }
+      @media (max-width: 420px) {
+        #title {
+          font-size: 14px;
+        }
+        #node-gh {
+          font-size: 12px;
+        }
+        #console {
+          font-size: clamp(8px, 3.8vw, 11px);
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 88px);
+        }
+        .ascii-banner {
+          font-size: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="header">
+      <div id="header-left">
+        <div id="title">GH Node Live Terminal</div>
+        <div id="node-info">
+          <div id="node-gh">GH-?-?</div>
+          <div id="node-fw">FW: Loading...</div>
+        </div>
+      </div>
+
+      <div id="header-right">
+        <div id="status">
+          <div id="status-ind" class="disconnected"></div>
+          <div id="status-text">CONNECTING...</div>
+        </div>
+        <button id="clear-btn" class="hdr-btn">Clear</button>
+      </div>
+    </div>
+
+    <pre id="console" role="log" aria-live="polite" spellcheck="false"></pre>
+
+    <div id="input-bar" aria-hidden="false">
+      <div id="input-inner">
+        <div id="prompt">></div>
+        <input
+          id="cmd-input"
+          type="text"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="Type command..."
+        />
+        <button id="send">Send</button>
+      </div>
+    </div>
+
+    <!-- LOAD NATIVE CRYPTO LIBRARY -->
+    <script src="./crypto.js"></script>
+
+    <!-- CRYPTO ADAPTER (Links HTML to C++ Logic) -->
+    <script>
+      (function () {
+        // Must match CryptoUtils.h AES_KEY
+        const RAW_KEY_HEX =
+          "2b7e151628aed2a6abf7158809cf4f3c0102030405060708090a0b0c0d0e0f10";
+        let KEY_PARSED = null;
+
+        function getKey() {
+          if (!KEY_PARSED && window.CryptoJS) {
+            KEY_PARSED = CryptoJS.enc.Hex.parse(RAW_KEY_HEX);
+          }
+          return KEY_PARSED;
+        }
+
+        // Encrypt: Returns "IV_B64:CIPHER_B64"
+        window.encryptMessage = async function (plaintext) {
+          if (!window.CryptoJS) return null;
+          const key = getKey();
+          const iv = CryptoJS.lib.WordArray.random(16);
+
+          const encrypted = CryptoJS.AES.encrypt(plaintext, key, {
+            iv: iv,
+            mode: CryptoJS.mode.CBC,
+            padding: CryptoJS.pad.Pkcs7,
+          });
+
+          // C++ side expects: BASE64(IV) + ":" + BASE64(Ciphertext)
+          // CryptoJS.AES.encrypt returns a CipherParams object.
+          // encrypted.ciphertext is the raw cipher word array.
+
+          const ivB64 = CryptoJS.enc.Base64.stringify(iv);
+          const cipherB64 = CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
+
+          return ivB64 + ":" + cipherB64;
+        };
+
+        // Decrypt: Takes "IV_B64:CIPHER_B64" returns Plaintext
+        window.decryptMessage = async function (payload) {
+          if (!window.CryptoJS || !payload) return null;
+          const key = getKey();
+
+          const parts = payload.split(":");
+          if (parts.length !== 2) return null; // Invalid format
+
+          const iv = CryptoJS.enc.Base64.parse(parts[0]);
+          const ciphertext = CryptoJS.enc.Base64.parse(parts[1]);
+
+          const cipherParams = CryptoJS.lib.CipherParams.create({
+            ciphertext: ciphertext,
+          });
+
+          try {
+            const decrypted = CryptoJS.AES.decrypt(cipherParams, key, {
+              iv: iv,
+              mode: CryptoJS.mode.CBC,
+              padding: CryptoJS.pad.Pkcs7,
+            });
+            return decrypted.toString(CryptoJS.enc.Utf8);
+          } catch (e) {
+            console.error("Decrypt error", e);
+            return null;
+          }
+        };
+      })();
+    </script>
+
+    <!-- MAIN APPLICATION SCRIPT -->
+    <script>
+      (function () {
+        const consolePre = document.getElementById("console");
+        const cmdInput = document.getElementById("cmd-input");
+        const sendBtn = document.getElementById("send");
+        const clearBtn = document.getElementById("clear-btn");
+        const statusInd = document.getElementById("status-ind");
+        const statusText = document.getElementById("status-text");
+        const nodeGh = document.getElementById("node-gh");
+        const nodeFw = document.getElementById("node-fw");
+        const inputBar = document.getElementById("input-bar");
+
+        const wsUrl =
+          (location.protocol === "https:" ? "wss:" : "ws:") +
+          "//" +
+          location.hostname +
+          "/ws";
+        let ws = null;
+        let reconnectTimer = null;
+
+        let bannerPrinted = false;
+        const pendingSystemMessages = [];
+
+        function measureCharWidth(fontPx, fontFamily) {
+          const cvs = document.createElement("canvas");
+          const ctx = cvs.getContext("2d");
+          ctx.font = fontPx + "px " + fontFamily;
+          const m = ctx.measureText("M");
+          return m.width || fontPx * 0.6;
+        }
+
+        function maxColumns(text) {
+          const lines = text.split("\n");
+          let max = 0;
+          for (let l of lines) {
+            const len = l.replace(/\t/g, "    ").length;
+            if (len > max) max = len;
+          }
+          return max || 1;
+        }
+        function lineCount(text) {
+          return text.split("\n").length || 1;
+        }
+
+        function fitBannerFont(bannerSpan) {
+          if (!bannerSpan) return;
+          const text = bannerSpan.textContent || "";
+          if (!text) return;
+          const comp = window.getComputedStyle(bannerSpan);
+          const baselinePx = parseFloat(comp.fontSize) || 28;
+          const fontFamily = comp.fontFamily || '"Courier New", monospace';
+          const cols = Math.max(1, maxColumns(text));
+          const rows = Math.max(1, lineCount(text));
+          const consoleWidth = Math.max(40, consolePre.clientWidth - 24) * 0.95;
+          const consoleHeight = Math.max(40, consolePre.clientHeight - 24);
+          const charWidth = measureCharWidth(baselinePx, fontFamily);
+          const bannerWidthPx = cols * charWidth;
+          const MAX_BANNER_FRACTION = 0.3;
+          const maxBannerHeight = Math.max(
+            40,
+            consoleHeight * MAX_BANNER_FRACTION
+          );
+          const baselineLineHeight =
+            parseFloat(comp.lineHeight) || baselinePx * 0.95;
+          const baselineBannerHeight = rows * baselineLineHeight;
+          let scaleW = 1;
+          if (bannerWidthPx > consoleWidth)
+            scaleW = consoleWidth / bannerWidthPx;
+          let scaleH = 1;
+          if (baselineBannerHeight > maxBannerHeight)
+            scaleH = maxBannerHeight / baselineBannerHeight;
+          let scale = Math.min(scaleW, scaleH);
+          const MIN_SCALE = 0.18;
+          if (scale < MIN_SCALE) scale = MIN_SCALE;
+          const newFontPx = Math.max(7, Math.floor(baselinePx * scale));
+          bannerSpan.style.fontSize = newFontPx + "px";
+          bannerSpan.style.lineHeight = 0.95;
+          setTimeout(() => {
+            consolePre.scrollTop = consolePre.scrollHeight;
+          }, 30);
+        }
+
+        function fitAllBanners() {
+          const banners = consolePre.querySelectorAll(".ascii-banner");
+          banners.forEach((b) => fitBannerFont(b));
+        }
+
+        function appendSpan(text, className) {
+          const span = document.createElement("span");
+          if (className) span.className = className;
+          span.textContent = text;
+          consolePre.appendChild(span);
+          if (!text.endsWith("\n"))
+            consolePre.appendChild(document.createTextNode("\n"));
+          setTimeout(() => {
+            consolePre.scrollTop = consolePre.scrollHeight;
+          }, 20);
+          return span;
+        }
+
+        function printBanner(nodeId, fwVersion) {
+          const bannerText = [
+            "███╗   ██╗ ██████╗ ██████╗ ███████╗     ██████╗██╗     ██╗",
+            "████╗  ██║██╔═══██╗██╔══██╗██╔════╝    ██╔════╝██║     ██║",
+            "██╔██╗ ██║██║   ██║██║  ██║█████╗      ██║     ██║     ██║",
+            "██║╚██╗██║██║   ██║██║  ██║██╔══╝      ██║     ██║     ██║",
+            "██║ ╚████║╚██████╔╝██████╔╝███████╗    ╚██████╗███████╗██║",
+            "╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚══════╝     ╚═════╝╚══════╝╚═╝",
+            "",
+            `  Firmware v${fwVersion}`,
+            `  Node ID: ${nodeId}`,
+            "",
+          ].join("\n");
+          const wrap = document.createElement("span");
+          wrap.className = "ascii-wrap";
+          const bannerSpan = document.createElement("span");
+          bannerSpan.className = "ascii-banner";
+          bannerSpan.textContent = bannerText + "\n";
+          wrap.appendChild(bannerSpan);
+          consolePre.appendChild(wrap);
+          appendSystem(
+            "[SYSTEM] Connection established. Type 'help' for commands."
+          );
+          bannerPrinted = true;
+          while (pendingSystemMessages.length)
+            appendSystem(pendingSystemMessages.shift());
+          setTimeout(fitAllBanners, 60);
+        }
+
+        function appendSystem(msg) {
+          if (!bannerPrinted) pendingSystemMessages.push(msg);
+          else appendSpan(msg + "\n", "system-msg");
+        }
+
+        function connectWS() {
+          if (ws) return;
+          try {
+            ws = new WebSocket(wsUrl);
+          } catch (e) {
+            scheduleReconnect();
+            return;
+          }
+
+          ws.onopen = function () {
+            appendSystem("[WS] Connected to server.");
+            statusInd.classList.add("connected");
+            statusText.textContent = "CONNECTED";
+            setTimeout(() => {
+              sendCmd("status");
+            }, 200);
+          };
+
+          // --- ASYNC MESSAGE HANDLING ---
+          ws.onmessage = async function (ev) {
+            try {
+              const decryptedText = await window.decryptMessage(ev.data);
+
+              if (decryptedText === null || decryptedText === "") {
+                appendSystem("[SYSTEM-ERROR] Decryption failed.");
+                return;
+              }
+
+              const raw = decryptedText;
+              try {
+                const data = JSON.parse(raw);
+                if (data.type === "init") {
+                  nodeGh.textContent = "GH-" + data.nodeId;
+                  nodeFw.textContent = "FW: " + data.firmwareVersion;
+                  printBanner(data.nodeId, data.firmwareVersion);
+                  return;
+                }
+              } catch (e) {
+                // Not JSON, treat as text log
+              }
+              appendSpan(raw);
+              setTimeout(fitAllBanners, 40);
+            } catch (e) {
+              console.error("WS Parse error", e);
+            }
+          };
+
+          ws.onclose = function () {
+            appendSystem("[WS] Disconnected. Attempting reconnect...");
+            statusInd.classList.remove("connected");
+            statusText.textContent = "DISCONNECTED";
+            ws = null;
+            scheduleReconnect();
+          };
+
+          ws.onerror = function (err) {
+            console.warn("WS error", err);
+            if (ws) {
+              try {
+                ws.close();
+              } catch (e) {}
+              ws = null;
+            }
+            scheduleReconnect();
+          };
+        }
+
+        function scheduleReconnect() {
+          if (reconnectTimer) return;
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            connectWS();
+          }, 2000);
+        }
+
+        // --- ASYNC COMMAND SENDING ---
+        async function sendCmd(cmd) {
+          if (!cmd) return;
+          appendSpan("> " + cmd + "\n");
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            try {
+              const encryptedCmd = await window.encryptMessage(cmd);
+              if (encryptedCmd) {
+                ws.send(encryptedCmd);
+              } else {
+                appendSystem("[SYSTEM-ERROR] Encryption returned null.");
+              }
+            } catch (e) {
+              console.error("Encryption failed:", e);
+              appendSystem(
+                "[SYSTEM-ERROR] Command encryption failed. Not sent."
+              );
+            }
+          } else {
+            appendSystem("[WS] Not connected — command not sent.");
+          }
+        }
+
+        clearBtn.addEventListener("click", () => {
+          consolePre.textContent = "";
+          bannerPrinted = false;
+          pendingSystemMessages.length = 0;
+          appendSystem("[SYSTEM] Console cleared.");
+        });
+
+        sendBtn.addEventListener("click", () => {
+          const v = cmdInput.value.trim();
+          if (v) {
+            sendCmd(v);
+            cmdInput.value = "";
+          }
+          cmdInput.focus();
+        });
+
+        cmdInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            const v = cmdInput.value.trim();
+            if (v) {
+              sendCmd(v);
+              cmdInput.value = "";
+            }
+          }
+        });
+
+        function adjustForKeyboard() {
+          if (window.visualViewport) {
+            const vv = window.visualViewport;
+            const kb = Math.max(0, window.innerHeight - vv.height);
+            inputBar.style.bottom = kb + 8 + "px";
+            consolePre.scrollTop = consolePre.scrollHeight;
+          } else {
+            cmdInput.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener("resize", adjustForKeyboard);
+          window.visualViewport.addEventListener("scroll", adjustForKeyboard);
+        }
+        cmdInput.addEventListener("focus", () =>
+          setTimeout(adjustForKeyboard, 50)
+        );
+        cmdInput.addEventListener(
+          "blur",
+          () => (inputBar.style.bottom = "env(safe-area-inset-bottom, 0)")
+        );
+
+        window.addEventListener("resize", () => setTimeout(fitAllBanners, 80));
+        window.addEventListener("orientationchange", () =>
+          setTimeout(fitAllBanners, 120)
+        );
+
+        window.addEventListener("load", () => {
+          appendSystem("[SYSTEM] Loading...");
+          connectWS();
+          setTimeout(() => {
+            consolePre.scrollTop = consolePre.scrollHeight;
+          }, 80);
+        });
+
+        window.__fitAllBanners = fitAllBanners;
+      })();
+    </script>
+  </body>
+</html>

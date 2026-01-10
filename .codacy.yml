@@ -1,0 +1,25 @@
+# Codacy Configuration File
+# See: https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+
+---
+engines:
+  cppcheck:
+    enabled: true
+  clang-tidy:
+    enabled: true
+
+exclude_paths:
+  - "test/**"
+  - "lib/**/test/**"
+  - ".pio/**"
+  - "build/**"
+  - "node_modules/**"
+  - "docs/**"
+
+languages:
+  cpp:
+    extensions:
+      - ".cpp"
+      - ".h"
+      - ".hpp"
+      - ".ino"

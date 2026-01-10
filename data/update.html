@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESP Firmware Update</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --primary-color: #2a9d8f;
+        --primary-hover: #268a7e;
+        --success-color: #2a9d8f;
+        --fail-color: #e76f51;
+        --background-color: #f8f9fa;
+        --card-bg-color: #ffffff;
+        --text-color: #343a40;
+        --border-color: #dee2e6;
+      }
+      body {
+        /* DIUBAH: Menggunakan system font */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .card {
+        background: var(--card-bg-color);
+        padding: 2.5rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        width: 100%%;
+        max-width: 450px;
+        text-align: center;
+        box-sizing: border-box;
+      }
+      h1 {
+        color: var(--primary-color);
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        margin-bottom: 2rem;
+        color: #6c757d;
+      }
+      /* Custom File Input */
+      .file-input-wrapper {
+        margin-bottom: 1.5rem;
+      }
+      input[type="file"] {
+        display: none;
+      }
+      .file-input-label {
+        background-color: #fff;
+        color: #495057;
+        padding: 12px 20px;
+        border: 2px dashed var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+      .file-input-label:hover {
+        background-color: #f1f3f5;
+        border-color: var(--primary-color);
+      }
+      #file-name {
+        margin-left: 10px;
+        font-weight: 500;
+        color: var(--primary-color);
+      }
+      input[type="submit"] {
+        width: 100%%;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 600;
+        transition: background-color 0.2s, opacity 0.2s;
+      }
+      input[type="submit"]:hover {
+        background-color: var(--primary-hover);
+      }
+      input[type="submit"]:disabled {
+        background-color: #adb5bd;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+      .progress-container {
+        width: 100%%;
+        background-color: #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 1.5rem;
+        display: none; /* Hidden by default */
+      }
+      .progress-bar {
+        width: 0%%;
+        height: 20px;
+        background-color: var(--primary-color);
+        text-align: center;
+        line-height: 20px;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: width 0.3s ease-in-out;
+      }
+      .status {
+        margin-top: 1rem;
+        font-weight: 500;
+        min-height: 1.5em;
+      }
+      .status .msg-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .status.success {
+        color: var(--success-color);
+      }
+      .status.error {
+        color: var(--fail-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Firmware Updater</h1>
+      <p>Select a <code>.bin</code> firmware file to upload.</p>
+      <form
+        method="POST"
+        action="/update"
+        enctype="multipart/form-data"
+        id="upload_form"
+      >
+        <!-- ================ BLOK PASSWORD DIPINDAHKAN KE SINI (SEBELUM FILE) ================ -->
+        <div style="text-align: left; margin-bottom: 1.5rem">
+          <label
+            for="admin-pass"
+            style="display: block; margin-bottom: 0.5rem; font-weight: 500"
+            >Admin Password</label
+          >
+          <input
+            id="admin-pass"
+            type="password"
+            name="password"
+            required
+            style="
+              width: 100%%;
+              padding: 12px 15px;
+              border: 1px solid var(--border-color);
+              border-radius: 8px;
+              box-sizing: border-box;
+            "
+          />
+        </div>
+        <!-- ==================================================================================== -->
+
+        <!-- ================ BLOK FILE SEKARANG BERADA DI URUTAN KEDUA ================ -->
+        <div class="file-input-wrapper">
+          <label for="file-upload" class="file-input-label">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span id="file-name">Choose a file...</span>
+          </label>
+          <input
+            id="file-upload"
+            type="file"
+            name="update"
+            accept=".bin"
+            required
+          />
+        </div>
+        <!-- =========================================================================== -->
+
+        <input type="submit" value="Upload and Update" id="submit-btn" />
+      </form>
+      <div id="progress-container" class="progress-container">
+        <div id="progress-bar" class="progress-bar">0%</div>
+      </div>
+      <div id="status" class="status"></div>
+    </div>
+    <script>
+      const uploadForm = document.getElementById("upload_form");
+      const fileInput = document.getElementById("file-upload");
+      const fileNameSpan = document.getElementById("file-name");
+      const submitBtn = document.getElementById("submit-btn");
+      const progressContainer = document.getElementById("progress-container");
+      const progressBar = document.getElementById("progress-bar");
+      const statusDiv = document.getElementById("status");
+      const successIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+      const errorIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
+
+      fileInput.addEventListener("change", function () {
+        if (this.files.length > 0) {
+          fileNameSpan.textContent = this.files[0].name;
+        } else {
+          fileNameSpan.textContent = "Choose a file...";
+        }
+      });
+
+      uploadForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var form = e.target;
+        var data = new FormData(form);
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", form.action, true);
+
+        submitBtn.disabled = true;
+        submitBtn.value = "Uploading...";
+        progressContainer.style.display = "block";
+        statusDiv.className = "status";
+        statusDiv.innerHTML = "Starting upload...";
+
+        xhr.upload.onprogress = function (event) {
+          if (event.lengthComputable) {
+            var percentComplete = (event.loaded / event.total) * 100;
+            progressBar.style.width = percentComplete + "%";
+            progressBar.textContent = percentComplete.toFixed(0) + "%";
+          }
+        };
+
+        xhr.onload = function () {
+          submitBtn.disabled = false;
+          submitBtn.value = "Upload and Update";
+          if (xhr.status === 200) {
+            progressBar.style.backgroundColor = "var(--success-color)";
+            statusDiv.className = "status success";
+            statusDiv.innerHTML = `<div class="msg-content">${successIcon} <span>${xhr.responseText}</span></div>`;
+          } else {
+            progressBar.style.backgroundColor = "var(--fail-color)";
+            statusDiv.className = "status error";
+            statusDiv.innerHTML = `<div class="msg-content">${errorIcon} <span>Update failed! Error: ${xhr.responseText}</span></div>`;
+          }
+        };
+
+        xhr.onerror = function () {
+          submitBtn.disabled = false;
+          submitBtn.value = "Upload and Update";
+          progressBar.style.backgroundColor = "var(--fail-color)";
+          statusDiv.className = "status error";
+          statusDiv.innerHTML = `<div class="msg-content">${errorIcon} <span>An error occurred during the upload. Check connection.</span></div>`;
+        };
+
+        xhr.send(data);
+      });
+    </script>
+  </body>
+</html>

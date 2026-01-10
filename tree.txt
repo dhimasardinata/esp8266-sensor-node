@@ -1,0 +1,189 @@
+|-- .github
+|   |-- instructions
+|   |   +-- codacy.instructions.md
+|   |-- workflows
+|   |   +-- ci.yml
+|   +-- dependabot.yml
+|-- data
+|   |-- connecting.html
+|   |-- crypto.js
+|   |-- index.html
+|   |-- portal.html
+|   |-- rebooting.html
+|   |-- success.html
+|   |-- terminal.html
+|   +-- update.html
+|-- include
+|   |-- Application.h
+|   |-- calibration.h
+|   |-- certs.h
+|   |-- constants.h
+|   |-- HAL.h
+|   |-- hardware_pins.h
+|   |-- node_config.h
+|   |-- root_ca_data.h
+|   +-- WebAppData.h
+|-- lib
+|   +-- GreenhouseCommon
+|       |-- Commands
+|       |   |-- CacheStatusCommand.cpp
+|       |   |-- CacheStatusCommand.h
+|       |   |-- CheckUpdateCommand.cpp
+|       |   |-- CheckUpdateCommand.h
+|       |   |-- ClearCacheCommand.cpp
+|       |   |-- ClearCacheCommand.h
+|       |   |-- CommandContext.h
+|       |   |-- CrashLogCommand.cpp
+|       |   |-- CrashLogCommand.h
+|       |   |-- FactoryResetCommand.cpp
+|       |   |-- FactoryResetCommand.h
+|       |   |-- FormatFsCommand.cpp
+|       |   |-- FormatFsCommand.h
+|       |   |-- FsStatusCommand.cpp
+|       |   |-- FsStatusCommand.h
+|       |   |-- GetCalibrationCommand.cpp
+|       |   |-- GetCalibrationCommand.h
+|       |   |-- GetConfigCommand.cpp
+|       |   |-- GetConfigCommand.h
+|       |   |-- HelpCommand.cpp
+|       |   |-- HelpCommand.h
+|       |   |-- ICommand.h
+|       |   |-- LoginCommand.cpp
+|       |   |-- LoginCommand.h
+|       |   |-- LogoutCommand.cpp
+|       |   |-- LogoutCommand.h
+|       |   |-- OpenWifiCommand.cpp
+|       |   |-- OpenWifiCommand.h
+|       |   |-- QosCommand.cpp
+|       |   |-- QosCommand.h
+|       |   |-- ReadSensorsCommand.cpp
+|       |   |-- ReadSensorsCommand.h
+|       |   |-- RebootCommand.cpp
+|       |   |-- RebootCommand.h
+|       |   |-- ResetCalibrationCommand.cpp
+|       |   |-- ResetCalibrationCommand.h
+|       |   |-- SendNowCommand.cpp
+|       |   |-- SendNowCommand.h
+|       |   |-- SetCalibrationCommand.cpp
+|       |   |-- SetCalibrationCommand.h
+|       |   |-- SetConfigCommand.cpp
+|       |   |-- SetConfigCommand.h
+|       |   |-- SetPortalPassCommand.cpp
+|       |   |-- SetPortalPassCommand.h
+|       |   |-- SetTokenCommand.cpp
+|       |   |-- SetTokenCommand.h
+|       |   |-- SetWifiCommand.cpp
+|       |   |-- SetWifiCommand.h
+|       |   |-- StatusCommand.cpp
+|       |   |-- StatusCommand.h
+|       |   |-- SysInfoCommand.cpp
+|       |   |-- SysInfoCommand.h
+|       |   |-- WifiAddCommand.cpp
+|       |   |-- WifiAddCommand.h
+|       |   |-- WifiListCommand.cpp
+|       |   |-- WifiListCommand.h
+|       |   |-- WifiRemoveCommand.cpp
+|       |   |-- WifiRemoveCommand.h
+|       |   |-- ZeroCalibrationCommand.cpp
+|       |   +-- ZeroCalibrationCommand.h
+|       |-- ApiClient.cpp
+|       |-- ApiClient.h
+|       |-- AppServer.cpp
+|       |-- AppServer.h
+|       |-- BootGuard.cpp
+|       |-- BootGuard.h
+|       |-- CacheManager.cpp
+|       |-- CacheManager.h
+|       |-- CompileTimeUtils.h
+|       |-- ConfigManager.cpp
+|       |-- ConfigManager.h
+|       |-- CrashHandler.cpp
+|       |-- CrashHandler.h
+|       |-- CryptoUtils.cpp
+|       |-- CryptoUtils.h
+|       |-- DiagnosticsTerminal.cpp
+|       |-- DiagnosticsTerminal.h
+|       |-- FileGuard.h
+|       |-- IAuthManager.h
+|       |-- ICacheManager.h
+|       |-- IConfigObserver.h
+|       |-- IntervalTimer.h
+|       |-- ISensorManager.h
+|       |-- IWifiStateObserver.h
+|       |-- library.json
+|       |-- Logger.cpp
+|       |-- Logger.h
+|       |-- NtpClient.cpp
+|       |-- NtpClient.h
+|       |-- OtaManager.cpp
+|       |-- OtaManager.h
+|       |-- Paths.h
+|       |-- PortalServer.cpp
+|       |-- PortalServer.h
+|       |-- sensor_data.h
+|       |-- SensorManager.cpp
+|       |-- SensorManager.h
+|       |-- ServiceContainer.h
+|       |-- TerminalFormatting.cpp
+|       |-- TerminalFormatting.h
+|       |-- utils.cpp
+|       |-- utils.h
+|       |-- WifiCredentialStore.cpp
+|       |-- WifiCredentialStore.h
+|       |-- WifiManager.cpp
+|       +-- WifiManager.h
+|-- log
+|   +-- COM11_2025_09_17.22.19.39.752.txt
+|-- scripts
+|   |-- convert_certs.py
+|   |-- convert_sysincludes.py
+|   |-- extra_script.py
+|   |-- format_all.py
+|   |-- inject_config.py
+|   |-- prepare_assets.py
+|   |-- sanitize_for_public.py
+|   +-- web_to_header.py
+|-- src
+|   |-- Application.cpp
+|   +-- main.cpp
+|-- test
+|   |-- mocks
+|   |   |-- bearssl
+|   |   |   +-- bearssl.h
+|   |   |-- Arduino.h
+|   |   |-- ArduinoOTA.h
+|   |   |-- ESP8266HTTPClient.h
+|   |   |-- ESP8266mDNS.h
+|   |   |-- ESP8266WiFi.h
+|   |   |-- ESPAsyncWebServer.h
+|   |   |-- LittleFS.h
+|   |   |-- MockSystem.h
+|   |   |-- Updater.h
+|   |   |-- user_interface.h
+|   |   +-- WiFiClientSecureBearSSL.h
+|   |-- test_cache_manager
+|   |   +-- test_main.cpp
+|   |-- test_integration
+|   |   |-- mock_cache_manager.h
+|   |   |-- mock_sensor_manager.h
+|   |   +-- test_main.cpp
+|   |-- test_native_json
+|   |   +-- test_json_logic.cpp
+|   +-- test_native_stress
+|       +-- test_system_stress.cpp
+|-- .clang-format
+|-- .clang-format.bak
+|-- .codacy.yml
+|-- .gitignore
+|-- .hintrc
+|-- cert.pem
+|-- isrgrootx1.pem
+|-- node_id.ini
+|-- openssl-san.cnf
+|-- package-lock.json
+|-- package.json
+|-- platformio.ini
+|-- private.key
+|-- README.md
+|-- SECURITY.md
++-- watchers.js

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>GH Node - WiFi Setup</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a1f26;
+      --surface-hover: #242a33;
+      --accent: #8be9fd;
+      --accent-hover: #6fd6ff;
+      --text: #f8f8f2;
+      --muted: #6272a4;
+      --success: #50fa7b;
+      --warning: #f1fa8c;
+      --error: #ff5555;
+      --border: #44475a;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* Header */
+    header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(139, 233, 253, 0.05), transparent);
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    #device-id {
+      display: inline-block;
+      background: var(--surface);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      margin-top: 8px;
+      color: var(--accent);
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      max-width: 500px;
+      margin: 0 auto;
+      width: 100%%;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: #041416;
+    }
+
+    .tab:not(.active):hover {
+      background: var(--surface-hover);
+      color: var(--text);
+    }
+
+    /* Panel */
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    /* Network List */
+    #network-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .network-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 2px solid transparent;
+    }
+
+    .network-item:hover {
+      background: var(--surface-hover);
+      border-color: var(--border);
+    }
+
+    .network-item.selected {
+      border-color: var(--accent);
+      background: rgba(139, 233, 253, 0.08);
+    }
+
+    .network-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .network-ssid {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .network-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .badge {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge.known {
+      background: rgba(80, 250, 123, 0.2);
+      color: var(--success);
+    }
+
+    .badge.open {
+      background: rgba(241, 250, 140, 0.2);
+      color: var(--warning);
+    }
+
+    .network-signal {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+    }
+
+    .signal-bar {
+      width: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .signal-bar.active {
+      background: var(--accent);
+    }
+
+    .signal-bar:nth-child(1) {
+      height: 6px;
+    }
+
+    .signal-bar:nth-child(2) {
+      height: 10px;
+    }
+
+    .signal-bar:nth-child(3) {
+      height: 14px;
+    }
+
+    .signal-bar:nth-child(4) {
+      height: 18px;
+    }
+
+    /* Loading / Empty States */
+    .state-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .state-msg .icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139, 233, 253, 0.15);
+    }
+
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 14px;
+      top: 50%%;
+      transform: translateY(-50%%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .toggle-pass:hover {
+      color: var(--text);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #041416;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+    }
+
+    .btn-refresh {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 10px 14px;
+      font-size: 0.875rem;
+      margin-bottom: 12px;
+    }
+
+    .btn-refresh:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Selected Network Display */
+    .selected-network {
+      background: rgba(139, 233, 253, 0.1);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .selected-network .ssid {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .selected-network .clear {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .selected-network .clear:hover {
+      color: var(--error);
+    }
+
+    /* Error/Success Messages */
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      font-size: 0.875rem;
+    }
+
+    .alert-error {
+      background: rgba(255, 85, 85, 0.15);
+      border: 1px solid rgba(255, 85, 85, 0.3);
+      color: var(--error);
+    }
+
+    .alert-success {
+      background: rgba(80, 250, 123, 0.15);
+      border: 1px solid rgba(80, 250, 123, 0.3);
+      color: var(--success);
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      padding: 0 12px;
+    }
+
+    /* Hidden SSID Toggle */
+    .hidden-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+
+    .hidden-toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .hidden-toggle span {
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      header h1 {
+        font-size: 1.25rem;
+      }
+
+      .tab {
+        padding: 10px;
+        font-size: 0.875rem;
+      }
+
+      .network-item {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📡 WiFi Setup</h1>
+    <p>Connect your greenhouse node to the network</p>
+    <div id="device-id">%HOST_NAME%</div>
+  </header>
+
+  <main>
+    <!-- Error Display -->
+    <div id="error-msg" class="alert alert-error" style="display:%ERROR_DISPLAY%">%ERROR_MSG%</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">Scan Networks</button>
+      <button class="tab" data-tab="manual">Manual Entry</button>
+    </div>
+
+    <!-- Scan Panel -->
+    <div id="scan-panel" class="panel active">
+      <button class="btn btn-refresh" onclick="refreshNetworks()">↻ Refresh Networks</button>
+
+      <div id="network-list">
+        <div class="state-msg">
+          <div class="spinner"></div>
+          <div>Scanning for networks...</div>
+        </div>
+      </div>
+
+      <!-- Connection Form (appears after selection) -->
+      <form id="scan-form" action="/save" method="POST" style="display:none; margin-top: 20px;">
+        <div class="selected-network">
+          <span class="ssid" id="selected-ssid">-</span>
+          <button type="button" class="clear" onclick="clearSelection()">✕ Clear</button>
+        </div>
+        <input type="hidden" name="ssid" id="scan-ssid-input" />
+        <div class="form-group" id="scan-password-group">
+          <label for="scan-pass">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="scan-pass" name="pass" placeholder="Enter network password" />
+            <button type="button" class="toggle-pass" onclick="togglePass('scan-pass')">👁</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Connect</button>
+      </form>
+    </div>
+
+    <!-- Manual Entry Panel -->
+    <div id="manual-panel" class="panel">
+      <form action="/save" method="POST">
+        <label class="hidden-toggle">
+          <input type="checkbox" id="hidden-ssid" />
+          <span>Hidden Network (SSID not broadcast)</span>
+        </label>
+
+        <div class="form-group">
+          <label for="manual-ssid">Network Name (SSID)</label>
+          <input type="text" id="manual-ssid" name="ssid" placeholder="Enter network name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="manual-pass">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="manual-pass" name="pass"
+              placeholder="Enter password (leave empty for open networks)" />
+            <button type="button" class="toggle-pass" onclick="togglePass('manual-pass')">👁</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Connect</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+      });
+    });
+
+    // Toggle password visibility
+    function togglePass(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Network data
+    let networks = [];
+    let selectedNetwork = null;
+
+    // Fetch and display networks
+    async function refreshNetworks() {
+      const list = document.getElementById('network-list');
+      list.innerHTML = '<div class="state-msg"><div class="spinner"></div><div>Scanning...</div></div>';
+
+      try {
+        const res = await fetch('/networks');
+        const data = await res.json();
+
+        if (data.scanning) {
+          setTimeout(refreshNetworks, 1500);
+          return;
+        }
+
+        networks = data.networks || [];
+        renderNetworks();
+      } catch (e) {
+        list.innerHTML = '<div class="state-msg"><div class="icon">⚠️</div><div>Failed to scan. Try again.</div></div>';
+      }
+    }
+
+    function renderNetworks() {
+      const list = document.getElementById('network-list');
+
+      if (networks.length === 0) {
+        list.innerHTML = '<div class="state-msg"><div class="icon">📡</div><div>No networks found</div></div>';
+        return;
+      }
+
+      // Sort: known first, then by signal
+      networks.sort((a, b) => {
+        if (a.known !== b.known) return b.known - a.known;
+        return b.rssi - a.rssi;
+      });
+
+      list.innerHTML = networks.map((n, i) => `
+        <div class="network-item ${selectedNetwork === n.ssid ? 'selected' : ''}" onclick="selectNetwork(${i})">
+          <div class="network-info">
+            <div class="network-ssid">${escapeHtml(n.ssid)}</div>
+            <div class="network-meta">
+              ${n.known ? '<span class="badge known">Saved</span>' : ''}
+              ${n.open ? '<span class="badge open">Open</span>' : '🔒'}
+              <span>${n.rssi} dBm</span>
+            </div>
+          </div>
+          <div class="network-signal">
+            ${[1, 2, 3, 4].map(bar => `<div class="signal-bar ${bar <= n.bars ? 'active' : ''}"></div>`).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectNetwork(index) {
+      const n = networks[index];
+      selectedNetwork = n.ssid;
+
+      document.getElementById('selected-ssid').textContent = n.ssid;
+      document.getElementById('scan-ssid-input').value = n.ssid;
+      document.getElementById('scan-form').style.display = 'block';
+
+      // Hide password field for open networks
+      const pwGroup = document.getElementById('scan-password-group');
+      pwGroup.style.display = n.open ? 'none' : 'block';
+
+      renderNetworks();
+
+      // Scroll form into view
+      document.getElementById('scan-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function clearSelection() {
+      selectedNetwork = null;
+      document.getElementById('scan-form').style.display = 'none';
+      document.getElementById('scan-pass').value = '';
+      renderNetworks();
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+    }
+
+    // Initial load
+    refreshNetworks();
+  </script>
+</body>
+
+</html>
