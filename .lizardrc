@@ -1,0 +1,9 @@
+[lizard]
+length_threshold = 50
+cyclomatic_complexity_threshold = 12
+max_nloc = 50
+exclude = 
+    .pio/*
+    .git/*
+    build/*
+    node_modules/*

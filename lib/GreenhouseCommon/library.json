@@ -1,0 +1,11 @@
+{
+  "name": "GreenhouseCommon",
+  "version": "1.0.0",
+  "description": "Core library for the Greenhouse Monitoring Node project.",
+  "build": {
+    "flags": [
+      "-I include"
+    ],
+    "libLDFMode": "deep+"
+  }
+}

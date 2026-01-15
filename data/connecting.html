@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Connecting...</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a1f26;
+      --accent: #8be9fd;
+      --text: #f8f8f2;
+      --muted: #6272a4;
+      --success: #50fa7b;
+      --error: #ff5555;
+      --border: #44475a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--surface);
+      padding: 40px 30px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 380px;
+      width: 100%%;
+      border-top: 4px solid var(--accent);
+      transition: border-color 0.3s;
+    }
+
+    .card.success {
+      border-color: var(--success);
+    }
+
+    .card.fail {
+      border-color: var(--error);
+    }
+
+    .icon-wrap {
+      margin-bottom: 24px;
+    }
+
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 4px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .icon {
+      font-size: 56px;
+      line-height: 1;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .detail {
+      font-size: 0.8rem;
+      margin-top: 20px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      color: var(--muted);
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      margin-top: 24px;
+      background: var(--border);
+      border-radius: 6px;
+      height: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%%;
+      width: 0%%;
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      transition: width 0.5s;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card" id="card">
+    <div class="icon-wrap" id="icon-wrap">
+      <div class="spinner"></div>
+    </div>
+    <h1 id="title">Connecting...</h1>
+    <p id="msg">Attempting to connect to your WiFi network</p>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress"></div>
+    </div>
+    <div class="detail" id="detail">This may take up to 20 seconds</div>
+  </div>
+
+  <script>
+    const card = document.getElementById('card');
+    const iconWrap = document.getElementById('icon-wrap');
+    const title = document.getElementById('title');
+    const msg = document.getElementById('msg');
+    const progress = document.getElementById('progress');
+    const detail = document.getElementById('detail');
+
+    let elapsed = 0;
+    const maxTime = 20;
+
+    const intervalId = setInterval(async () => {
+      elapsed += 2;
+      progress.style.width = Math.min((elapsed / maxTime) * 100, 95) + '%%';
+
+      try {
+        const res = await fetch('/status');
+        const data = await res.json();
+
+        msg.textContent = data.message || 'Connecting...';
+        if (data.detail) detail.textContent = data.detail;
+
+        if (data.status === 'success') {
+          clearInterval(intervalId);
+          progress.style.width = '100%%';
+          card.classList.add('success');
+          title.textContent = 'Connected!';
+          iconWrap.innerHTML = '<div class="icon">✓</div>';
+          detail.textContent = 'Device will restart shortly...';
+          setTimeout(() => { window.location.href = '/success'; }, 2000);
+        } else if (data.status === 'fail') {
+          clearInterval(intervalId);
+          card.classList.add('fail');
+          title.textContent = 'Connection Failed';
+          iconWrap.innerHTML = '<div class="icon">✗</div>';
+          detail.textContent = 'Returning to setup...';
+          setTimeout(() => { window.location.href = '/'; }, 3000);
+        }
+      } catch (e) {
+        clearInterval(intervalId);
+        card.classList.add('fail');
+        title.textContent = 'Connection Lost';
+        msg.textContent = 'Could not reach the device';
+        iconWrap.innerHTML = '<div class="icon">⚠</div>';
+        detail.textContent = 'Please reconnect to the device WiFi';
+      }
+    }, 2000);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dokumentasi Firmware Greenhouse Node</title>
+    <style>
+      :root {
+        --primary: #10b981; /* Emerald Green */
+        --primary-dark: #047857;
+        --bg: #f8fafc;
+        --text: #334155;
+        --sidebar-bg: #ffffff;
+        --border: #e2e8f0;
+        --code-bg: #1e293b;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--text);
+        background: var(--bg);
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar Navigation */
+      nav {
+        width: 280px;
+        background: var(--sidebar-bg);
+        border-right: 1px solid var(--border);
+        height: 100vh;
+        position: fixed;
+        overflow-y: auto;
+        padding: 2rem 1rem;
+        top: 0;
+        left: 0;
+      }
+
+      nav h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        color: var(--primary-dark);
+        font-weight: 800;
+        padding-left: 10px;
+      }
+
+      nav ul {
+        list-style: none;
+      }
+      nav li {
+        margin-bottom: 0.5rem;
+      }
+
+      nav a {
+        text-decoration: none;
+        color: #64748b;
+        display: block;
+        padding: 0.5rem 10px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+      }
+
+      nav a:hover,
+      nav a.active {
+        background: #ecfdf5;
+        color: var(--primary-dark);
+        font-weight: 500;
+      }
+
+      /* Main Content */
+      main {
+        margin-left: 280px;
+        padding: 3rem 4rem;
+        max-width: 1000px;
+        width: 100%;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        color: #0f172a;
+        margin-bottom: 1rem;
+      }
+      h2 {
+        font-size: 1.8rem;
+        color: #1e293b;
+        margin-top: 3rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+      }
+      h3 {
+        font-size: 1.4rem;
+        color: #334155;
+        margin-top: 2rem;
+        margin-bottom: 0.8rem;
+      }
+      h4 {
+        font-size: 1.1rem;
+        color: #475569;
+        margin-top: 1.5rem;
+        font-weight: 600;
+      }
+
+      p {
+        margin-bottom: 1rem;
+      }
+      ul {
+        margin-left: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      /* Components */
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        background: var(--primary);
+        color: white;
+      }
+
+      .alert {
+        background: #fff1f2;
+        border-left: 4px solid #f43f5e;
+        padding: 1rem;
+        margin: 1.5rem 0;
+        border-radius: 0 6px 6px 0;
+      }
+
+      .alert-title {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #9f1239;
+      }
+
+      .info-box {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 0 6px 6px 0;
+      }
+
+      code {
+        background: #f1f5f9;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.9em;
+        color: #ef4444;
+      }
+
+      /* Table Styling */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2rem 0;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      th,
+      td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #475569;
+      }
+
+      /* Mermaid Diagram */
+      .mermaid {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin: 2rem 0;
+        text-align: center;
+      }
+
+      /* Mobile Responsive */
+      @media (max-width: 768px) {
+        nav {
+          display: none;
+        }
+        main {
+          margin-left: 0;
+          padding: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h3>Greenhouse FW</h3>
+      <ul>
+        <li><a href="#intro">Pendahuluan</a></li>
+        <li><a href="#boot">I. Booting & Keamanan</a></li>
+        <li><a href="#init">II. Inisialisasi Sistem</a></li>
+        <li><a href="#wifi">III. Manajemen Konektivitas</a></li>
+        <li><a href="#loop">IV. Loop Operasional</a></li>
+        <li><a href="#maintenance">V. Manajemen & Maintenance</a></li>
+        <li><a href="#watchdog">VI. Watchdog & Safety</a></li>
+        <li><a href="#summary">Ringkasan</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <section id="intro">
+        <h1>Dokumentasi Teknis Firmware Greenhouse Node</h1>
+        <p>
+          Dokumen ini menjelaskan Alur Sistem (System Flow) dan Logika Sistem
+          secara lengkap untuk perangkat Node Greenhouse. Mencakup booting,
+          operasional, dan penanganan error.
+        </p>
+        <p>
+          <span class="badge">Versi Docs 1.0</span>
+          <span class="badge" style="background: #64748b"
+            >Platform: ESP8266/ESP32</span
+          >
+        </p>
+
+        <div class="mermaid">
+          graph TD Start((Power On)) --> RTC{Cek RTC Magic} RTC -- Valid -->
+          Inc[Crash Counter +1] RTC -- Invalid --> Reset[Counter = 0] Inc -->
+          CheckSafe{Counter < 3?} Reset --> CheckSafe CheckSafe -- Tidak -->
+          Rescue[RESCUE MODE<br />AP: GH-RESCUE] CheckSafe -- Ya -->
+          MountFS[Mount Filesystem] MountFS --> LoadCfg[Load Config.dat] LoadCfg
+          --> CheckWifi{Cek Kredensial} CheckWifi -- Ada --> Connect[Connect
+          WiFi] CheckWifi -- Kosong --> Portal[PORTAL MODE<br />Captive Portal]
+          Connect -- Gagal/Timeout --> Portal Connect -- Sukses --> NTP[Sync
+          NTP] NTP --> ResetGuard[Reset Crash Counter] ResetGuard --> Loop((Main
+          Loop))
+        </div>
+      </section>
+
+      <section id="boot">
+        <h2>I. Alur Booting & Validasi Keamanan (BootGuard)</h2>
+        <p>
+          Fase kritis untuk mencegah perangkat mengalami <i>boot loop</i> yang
+          mematikan.
+        </p>
+
+        <div class="alert">
+          <span class="alert-title">Logika BootGuard</span>
+          Sistem membaca memori RTC. Jika terjadi restart berulang (Crash
+          Counter >= 3), sistem membatalkan boot normal dan masuk ke Rescue
+          Mode.
+        </div>
+
+        <h3>A. Skenario: Rescue Mode (Safe Mode)</h3>
+        <ul>
+          <li><b>Aktivasi:</b> Sensor dimatikan, logika utama non-aktif.</li>
+          <li>
+            <b>Konektivitas:</b> Mode AP (Access Point) bernama
+            <code>GH-RESCUE-MODE</code>.
+          </li>
+          <li>
+            <b>Web Interface:</b> Menyediakan opsi Factory Reset, Clear Boot
+            Flags, atau View Crash Log.
+          </li>
+        </ul>
+      </section>
+
+      <section id="init">
+        <h2>II. Inisialisasi Sistem (Normal Boot)</h2>
+        <p>Jika lolos dari BootGuard, sistem melakukan inisialisasi:</p>
+        <ol>
+          <li>
+            <b>Mount Filesystem (LittleFS):</b> Jika gagal (korup), sistem
+            melakukan <i>Self-healing</i> (format ulang otomatis).
+          </li>
+          <li>
+            <b>Load Konfigurasi:</b> Membaca <code>config.dat</code> dan
+            mendekripsi token otentikasi di RAM.
+          </li>
+          <li>
+            <b>Hardware Init:</b> Cek koneksi I2C ke sensor SHT (Suhu/Lembab)
+            dan BH1750 (Cahaya).
+          </li>
+        </ol>
+      </section>
+
+      <section id="wifi">
+        <h2>III. Manajemen Konektivitas</h2>
+        <p>
+          Sistem menggunakan <i>state machine</i> untuk koneksi WiFi yang
+          stabil.
+        </p>
+
+        <div class="info-box">
+          <b>Prioritas Kredensial:</b>
+          <br />1. <code>wifi_temp.dat</code> (Dari portal, belum teruji)
+          <br />2. <code>wifi.dat</code> (Kredensial utama)
+        </div>
+
+        <h3>Portal Mode (Captive Portal)</h3>
+        <p>
+          Aktif jika tidak ada kredensial atau koneksi gagal dalam 20 detik.
+        </p>
+        <ul>
+          <li><b>SSID:</b> <code>gh-[id]-node-[id]</code></li>
+          <li>
+            <b>Fungsi:</b> Redirect user ke halaman konfigurasi WiFi otomatis.
+          </li>
+        </ul>
+      </section>
+
+      <section id="loop">
+        <h2>IV. Loop Operasional Utama</h2>
+        <p>
+          Proses yang berjalan terus menerus dalam
+          <code>Application::loop()</code>.
+        </p>
+
+        <h3>A. Akuisisi Data</h3>
+        <p>
+          Membaca sensor SHT dan BH1750. Jika sensor gagal baca > 20x, sistem
+          melakukan reset bus I2C (Toggling SCL).
+        </p>
+
+        <h3>B. Manajemen Data (Store-and-Forward)</h3>
+        <p>
+          Data <b>tidak pernah dikirim langsung</b>. Data masuk ke Cache
+          (LittleFS) terlebih dahulu.
+        </p>
+        <ul>
+          <li><b>Format:</b> JSON dengan CRC32 Checksum.</li>
+          <li><b>Logika FIFO:</b> Jika memori penuh, data terlama dihapus.</li>
+        </ul>
+
+        <h3>C. Pengiriman Data (ApiClient)</h3>
+        <p>Kirim data saat interval tercapai atau cache penuh.</p>
+        <ul>
+          <li>
+            <b>Pre-Flight Check:</b> Cek sisa RAM (Heap). Jika < 15KB, batalkan
+            pengiriman (mencegah Out of Memory saat SSL).
+          </li>
+          <li>
+            <b>Proses:</b> Upload 1 record -> Validasi Server (HTTP 200) ->
+            Hapus dari Cache.
+          </li>
+        </ul>
+      </section>
+
+      <section id="maintenance">
+        <h2>V. Fitur Manajemen & Maintenance</h2>
+
+        <h3>A. Terminal Diagnostik (WebSocket)</h3>
+        <p>
+          Akses real-time via browser ke IP perangkat (<code>/ws</code>).
+          Komunikasi dienkripsi dengan <b>AES-256-CBC</b>.
+        </p>
+
+        <h3>B. OTA (Over-The-Air Update)</h3>
+        <p>
+          Cek versi setiap 1 jam. Jika versi server > versi firmware, lakukan
+          update secara <i>atomic</i> (aman dari kegagalan download).
+        </p>
+      </section>
+
+      <section id="watchdog">
+        <h2>VI. Watchdog & Safety Nets</h2>
+        <p>Perlindungan berlapis agar perangkat tidak hang permanen.</p>
+        <ul>
+          <li>
+            <b>Hardware Watchdog (HW WDT):</b> Reset CPU jika macet > 3 detik.
+          </li>
+          <li>
+            <b>Software Watchdog (SW WDT):</b> Reboot jika gagal kirim data > 30
+            menit (Zombie Connection).
+          </li>
+          <li>
+            <b>Crash Logging:</b> Menyimpan Stack Dump ke
+            <code>crash.log</code> sebelum restart.
+          </li>
+          <li>
+            <b>DoS Protection:</b> Ban IP sementara jika salah password OTA
+            manual 5x.
+          </li>
+        </ul>
+      </section>
+
+      <section id="summary">
+        <h2>Ringkasan Skenario</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Kondisi</th>
+              <th>Perilaku Sistem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Normal</td>
+              <td>Baca sensor -> Simpan Cache -> Kirim Server -> Sleep.</td>
+            </tr>
+            <tr>
+              <td>WiFi Mati</td>
+              <td>Baca sensor -> Simpan Cache (Menumpuk sampai penuh).</td>
+            </tr>
+            <tr>
+              <td>Sensor Rusak</td>
+              <td>Reset I2C. Kirim nilai null ke server (Flag error).</td>
+            </tr>
+            <tr>
+              <td>Listrik Berkedip</td>
+              <td>BootGuard deteksi crash -> Masuk Rescue Mode jika >3x.</td>
+            </tr>
+            <tr>
+              <td>Memori Penuh</td>
+              <td>Batalkan SSL. Hapus cache lama. Prioritas stabilitas.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <!-- Mermaid JS untuk Diagram -->
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+  </body>
+</html>
