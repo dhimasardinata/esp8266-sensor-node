@@ -1,0 +1,408 @@
+|-- .devcontainer
+|   +-- devcontainer.json
+|-- .github
+|   |-- instructions
+|   |   +-- codacy.instructions.md
+|   |-- workflows
+|   |   |-- ci.yml
+|   |   +-- simulation.yml
+|   +-- dependabot.yml
+|-- data
+|   |-- connecting.html
+|   |-- crypto.js
+|   |-- index.html
+|   |-- portal.html
+|   |-- rebooting.html
+|   |-- success.html
+|   |-- terminal.html
+|   +-- update.html
+|-- include
+|   |-- Application.h
+|   |-- BootManager.h
+|   |-- calibration.h
+|   |-- certs.h
+|   |-- constants.h
+|   |-- HAL.h
+|   |-- hardware_pins.h
+|   |-- node_config.h
+|   |-- root_ca_data.h
+|   +-- WebAppData.h
+|-- lib
+|   +-- GreenhouseCommon
+|       |-- Commands
+|       |   |-- CacheStatusCommand.cpp
+|       |   |-- CacheStatusCommand.h
+|       |   |-- CheckUpdateCommand.cpp
+|       |   |-- CheckUpdateCommand.h
+|       |   |-- ClearCacheCommand.cpp
+|       |   |-- ClearCacheCommand.h
+|       |   |-- CommandContext.h
+|       |   |-- CrashLogCommand.cpp
+|       |   |-- CrashLogCommand.h
+|       |   |-- FactoryResetCommand.cpp
+|       |   |-- FactoryResetCommand.h
+|       |   |-- ForceOtaInsecureCommand.h
+|       |   |-- FormatFsCommand.cpp
+|       |   |-- FormatFsCommand.h
+|       |   |-- FsStatusCommand.cpp
+|       |   |-- FsStatusCommand.h
+|       |   |-- GetCalibrationCommand.cpp
+|       |   |-- GetCalibrationCommand.h
+|       |   |-- GetConfigCommand.cpp
+|       |   |-- GetConfigCommand.h
+|       |   |-- ICommand.h
+|       |   |-- LoginCommand.cpp
+|       |   |-- LoginCommand.h
+|       |   |-- LogoutCommand.cpp
+|       |   |-- LogoutCommand.h
+|       |   |-- ModeCommand.cpp
+|       |   |-- ModeCommand.h
+|       |   |-- OpenWifiCommand.cpp
+|       |   |-- OpenWifiCommand.h
+|       |   |-- QosCommand.cpp
+|       |   |-- QosCommand.h
+|       |   |-- ReadSensorsCommand.cpp
+|       |   |-- ReadSensorsCommand.h
+|       |   |-- RebootCommand.cpp
+|       |   |-- RebootCommand.h
+|       |   |-- ResetCalibrationCommand.cpp
+|       |   |-- ResetCalibrationCommand.h
+|       |   |-- SendNowCommand.cpp
+|       |   |-- SendNowCommand.h
+|       |   |-- SetCalibrationCommand.cpp
+|       |   |-- SetCalibrationCommand.h
+|       |   |-- SetConfigCommand.cpp
+|       |   |-- SetConfigCommand.h
+|       |   |-- SetPortalPassCommand.cpp
+|       |   |-- SetPortalPassCommand.h
+|       |   |-- SetTokenCommand.cpp
+|       |   |-- SetTokenCommand.h
+|       |   |-- SetWifiCommand.cpp
+|       |   |-- SetWifiCommand.h
+|       |   |-- SysInfoCommand.cpp
+|       |   |-- SysInfoCommand.h
+|       |   |-- WifiAddCommand.cpp
+|       |   |-- WifiAddCommand.h
+|       |   |-- WifiListCommand.cpp
+|       |   |-- WifiListCommand.h
+|       |   |-- WifiRemoveCommand.cpp
+|       |   |-- WifiRemoveCommand.h
+|       |   |-- ZeroCalibrationCommand.cpp
+|       |   +-- ZeroCalibrationCommand.h
+|       |-- ApiClient.cpp
+|       |-- ApiClient.h
+|       |-- ApiClient.Qos.cpp
+|       |-- ApiClient.Transport.cpp
+|       |-- ApiClient.Upload.cpp
+|       |-- AppServer.cpp
+|       |-- AppServer.h
+|       |-- AppServer.Routes.cpp
+|       |-- BootGuard.cpp
+|       |-- BootGuard.h
+|       |-- CacheManager.cpp
+|       |-- CacheManager.h
+|       |-- CompileTimeJSON.h
+|       |-- CompileTimeUtils.h
+|       |-- ConfigManager.cpp
+|       |-- ConfigManager.h
+|       |-- CrashHandler.cpp
+|       |-- CrashHandler.h
+|       |-- CryptoUtils.cpp
+|       |-- CryptoUtils.h
+|       |-- DiagnosticsTerminal.Commands.cpp
+|       |-- DiagnosticsTerminal.cpp
+|       |-- DiagnosticsTerminal.h
+|       |-- IAuthManager.h
+|       |-- ICacheManager.h
+|       |-- IConfigObserver.h
+|       |-- IntervalTimer.h
+|       |-- ISensorManager.h
+|       |-- IWifiStateObserver.h
+|       |-- library.json
+|       |-- Logger.cpp
+|       |-- Logger.h
+|       |-- NtpClient.cpp
+|       |-- NtpClient.h
+|       |-- OtaManager.cpp
+|       |-- OtaManager.h
+|       |-- Paths.h
+|       |-- PortalServer.cpp
+|       |-- PortalServer.h
+|       |-- PortalServer.Routes.cpp
+|       |-- sensor_data.h
+|       |-- SensorManager.cpp
+|       |-- SensorManager.h
+|       |-- SystemHealth.h
+|       |-- TerminalFormatting.cpp
+|       |-- TerminalFormatting.h
+|       |-- utils.cpp
+|       |-- utils.h
+|       |-- WifiCredentialStore.cpp
+|       |-- WifiCredentialStore.h
+|       |-- WifiManager.cpp
+|       |-- WifiManager.h
+|       +-- WifiRouteUtils.h
+|-- log
+|   +-- COM11_2025_09_17.22.19.39.752.txt
+|-- prompt
+|   |-- .gitignore
+|   |-- audit_prompt.md
+|   |-- data_connecting.html
+|   |-- data_crypto.js
+|   |-- data_index.html
+|   |-- data_portal.html
+|   |-- data_rebooting.html
+|   |-- data_success.html
+|   |-- data_terminal.html
+|   |-- data_update.html
+|   |-- docs_index.html
+|   |-- include_Application.h
+|   |-- include_BootManager.h
+|   |-- include_calibration.h
+|   |-- include_certs.h
+|   |-- include_constants.h
+|   |-- include_HAL.h
+|   |-- include_hardware_pins.h
+|   |-- include_node_config.h
+|   |-- include_root_ca_data.h
+|   |-- lib_GreenhouseCommon_ApiClient.cpp
+|   |-- lib_GreenhouseCommon_ApiClient.h
+|   |-- lib_GreenhouseCommon_ApiClient.Qos.cpp
+|   |-- lib_GreenhouseCommon_ApiClient.Transport.cpp
+|   |-- lib_GreenhouseCommon_ApiClient.Upload.cpp
+|   |-- lib_GreenhouseCommon_AppServer.cpp
+|   |-- lib_GreenhouseCommon_AppServer.h
+|   |-- lib_GreenhouseCommon_AppServer.Routes.cpp
+|   |-- lib_GreenhouseCommon_BootGuard.cpp
+|   |-- lib_GreenhouseCommon_BootGuard.h
+|   |-- lib_GreenhouseCommon_CacheManager.cpp
+|   |-- lib_GreenhouseCommon_CacheManager.h
+|   |-- lib_GreenhouseCommon_Commands_CacheStatusCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_CacheStatusCommand.h
+|   |-- lib_GreenhouseCommon_Commands_CheckUpdateCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_CheckUpdateCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ClearCacheCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_ClearCacheCommand.h
+|   |-- lib_GreenhouseCommon_Commands_CommandContext.h
+|   |-- lib_GreenhouseCommon_Commands_CrashLogCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_CrashLogCommand.h
+|   |-- lib_GreenhouseCommon_Commands_FactoryResetCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_FactoryResetCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ForceOtaInsecureCommand.h
+|   |-- lib_GreenhouseCommon_Commands_FormatFsCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_FormatFsCommand.h
+|   |-- lib_GreenhouseCommon_Commands_FsStatusCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_FsStatusCommand.h
+|   |-- lib_GreenhouseCommon_Commands_GetCalibrationCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_GetCalibrationCommand.h
+|   |-- lib_GreenhouseCommon_Commands_GetConfigCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_GetConfigCommand.h
+|   |-- lib_GreenhouseCommon_Commands_HelpCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_HelpCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ICommand.h
+|   |-- lib_GreenhouseCommon_Commands_LoginCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_LoginCommand.h
+|   |-- lib_GreenhouseCommon_Commands_LogoutCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_LogoutCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ModeCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_ModeCommand.h
+|   |-- lib_GreenhouseCommon_Commands_OpenWifiCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_OpenWifiCommand.h
+|   |-- lib_GreenhouseCommon_Commands_QosCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_QosCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ReadSensorsCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_ReadSensorsCommand.h
+|   |-- lib_GreenhouseCommon_Commands_RebootCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_RebootCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ResetCalibrationCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_ResetCalibrationCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SendNowCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SendNowCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SetCalibrationCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SetCalibrationCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SetConfigCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SetConfigCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SetPortalPassCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SetPortalPassCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SetTokenCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SetTokenCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SetWifiCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SetWifiCommand.h
+|   |-- lib_GreenhouseCommon_Commands_StatusCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_StatusCommand.h
+|   |-- lib_GreenhouseCommon_Commands_SysInfoCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_SysInfoCommand.h
+|   |-- lib_GreenhouseCommon_Commands_WifiAddCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_WifiAddCommand.h
+|   |-- lib_GreenhouseCommon_Commands_WifiListCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_WifiListCommand.h
+|   |-- lib_GreenhouseCommon_Commands_WifiRemoveCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_WifiRemoveCommand.h
+|   |-- lib_GreenhouseCommon_Commands_ZeroCalibrationCommand.cpp
+|   |-- lib_GreenhouseCommon_Commands_ZeroCalibrationCommand.h
+|   |-- lib_GreenhouseCommon_CompileTimeJSON.h
+|   |-- lib_GreenhouseCommon_CompileTimeUtils.h
+|   |-- lib_GreenhouseCommon_ConfigManager.cpp
+|   |-- lib_GreenhouseCommon_ConfigManager.h
+|   |-- lib_GreenhouseCommon_CrashHandler.cpp
+|   |-- lib_GreenhouseCommon_CrashHandler.h
+|   |-- lib_GreenhouseCommon_CryptoUtils.cpp
+|   |-- lib_GreenhouseCommon_CryptoUtils.h
+|   |-- lib_GreenhouseCommon_DiagnosticsTerminal.Commands.cpp
+|   |-- lib_GreenhouseCommon_DiagnosticsTerminal.cpp
+|   |-- lib_GreenhouseCommon_DiagnosticsTerminal.h
+|   |-- lib_GreenhouseCommon_IAuthManager.h
+|   |-- lib_GreenhouseCommon_ICacheManager.h
+|   |-- lib_GreenhouseCommon_IConfigObserver.h
+|   |-- lib_GreenhouseCommon_IntervalTimer.h
+|   |-- lib_GreenhouseCommon_ISensorManager.h
+|   |-- lib_GreenhouseCommon_IWifiStateObserver.h
+|   |-- lib_GreenhouseCommon_library.json
+|   |-- lib_GreenhouseCommon_Logger.cpp
+|   |-- lib_GreenhouseCommon_Logger.h
+|   |-- lib_GreenhouseCommon_NtpClient.cpp
+|   |-- lib_GreenhouseCommon_NtpClient.h
+|   |-- lib_GreenhouseCommon_OtaManager.cpp
+|   |-- lib_GreenhouseCommon_OtaManager.h
+|   |-- lib_GreenhouseCommon_Paths.h
+|   |-- lib_GreenhouseCommon_PortalServer.cpp
+|   |-- lib_GreenhouseCommon_PortalServer.h
+|   |-- lib_GreenhouseCommon_PortalServer.Routes.cpp
+|   |-- lib_GreenhouseCommon_sensor_data.h
+|   |-- lib_GreenhouseCommon_SensorManager.cpp
+|   |-- lib_GreenhouseCommon_SensorManager.h
+|   |-- lib_GreenhouseCommon_ServiceContainer.h
+|   |-- lib_GreenhouseCommon_StaticCommandRegistry.h
+|   |-- lib_GreenhouseCommon_SystemHealth.h
+|   |-- lib_GreenhouseCommon_TerminalFormatting.cpp
+|   |-- lib_GreenhouseCommon_TerminalFormatting.h
+|   |-- lib_GreenhouseCommon_utils.cpp
+|   |-- lib_GreenhouseCommon_utils.h
+|   |-- lib_GreenhouseCommon_WifiCredentialStore.cpp
+|   |-- lib_GreenhouseCommon_WifiCredentialStore.h
+|   |-- lib_GreenhouseCommon_WifiManager.cpp
+|   |-- lib_GreenhouseCommon_WifiManager.h
+|   |-- lib_GreenhouseCommon_WifiRouteUtils.h
+|   |-- package-lock.json
+|   |-- package.json
+|   |-- prompt.md
+|   |-- README.md
+|   |-- repro_bug.js
+|   |-- scripts_analyze_stack.py
+|   |-- scripts_collect_prompt_files.py
+|   |-- scripts_convert_certs.py
+|   |-- scripts_convert_sysincludes.py
+|   |-- scripts_extra_script.py
+|   |-- scripts_format_all.py
+|   |-- scripts_inject_config.py
+|   |-- scripts_patch_header.py
+|   |-- scripts_prepare_assets.py
+|   |-- scripts_sanitize_for_public.py
+|   |-- scripts_test_ota_upload.py
+|   |-- scripts_web_to_header.py
+|   |-- SECURITY.md
+|   |-- src_Application.cpp
+|   |-- src_BootManager.cpp
+|   |-- src_main.cpp
+|   |-- test_concat_nan.js
+|   |-- test_mocks_Arduino.h
+|   |-- test_mocks_ArduinoOTA.h
+|   |-- test_mocks_bearssl_bearssl_hash.h
+|   |-- test_mocks_bearssl_bearssl_hmac.h
+|   |-- test_mocks_bearssl_bearssl.h
+|   |-- test_mocks_ESP8266HTTPClient.h
+|   |-- test_mocks_ESP8266mDNS.h
+|   |-- test_mocks_ESP8266WiFi.h
+|   |-- test_mocks_ESPAsyncWebServer.h
+|   |-- test_mocks_FS.h
+|   |-- test_mocks_LittleFS.h
+|   |-- test_mocks_MockSystem.h
+|   |-- test_mocks_NativeTestHelper.h
+|   |-- test_mocks_Updater.h
+|   |-- test_mocks_user_interface.h
+|   |-- test_mocks_WiFiClientSecureBearSSL.h
+|   |-- test_repro.js
+|   |-- test_test_cache_manager_test_main.cpp
+|   |-- test_test_integration_mock_cache_manager.h
+|   |-- test_test_integration_mock_sensor_manager.h
+|   |-- test_test_integration_test_main.cpp
+|   |-- test_test_native_json_test_json_logic.cpp
+|   |-- test_test_native_stress_test_logic_comprehensive.cpp
+|   |-- test_test_native_stress_test_main.cpp
+|   |-- test_test_native_stress_test_simulation.cpp
+|   |-- test_test_native_stress_test_system_stress.cpp
+|   +-- watchers.js
+|-- scripts
+|   |-- analyze_stack.py
+|   |-- collect_prompt_files.py
+|   |-- convert_certs.py
+|   |-- convert_sysincludes.py
+|   |-- extra_script.py
+|   |-- format_all.py
+|   |-- inject_config.py
+|   |-- patch_header.py
+|   |-- prepare_assets.py
+|   |-- sanitize_for_public.py
+|   |-- test_ota_upload.py
+|   +-- web_to_header.py
+|-- src
+|   |-- Application.cpp
+|   |-- BootManager.cpp
+|   +-- main.cpp
+|-- test
+|   |-- mocks
+|   |   |-- bearssl
+|   |   |   |-- bearssl_hash.h
+|   |   |   |-- bearssl_hmac.h
+|   |   |   +-- bearssl.h
+|   |   |-- Arduino.h
+|   |   |-- ArduinoOTA.h
+|   |   |-- ESP8266HTTPClient.h
+|   |   |-- ESP8266mDNS.h
+|   |   |-- ESP8266WiFi.h
+|   |   |-- ESPAsyncWebServer.h
+|   |   |-- FS.h
+|   |   |-- LittleFS.h
+|   |   |-- MockSystem.h
+|   |   |-- NativeTestHelper.h
+|   |   |-- Updater.h
+|   |   |-- user_interface.h
+|   |   +-- WiFiClientSecureBearSSL.h
+|   |-- test_cache_manager
+|   |   +-- test_main.cpp
+|   |-- test_integration
+|   |   |-- mock_cache_manager.h
+|   |   |-- mock_sensor_manager.h
+|   |   +-- test_main.cpp
+|   |-- test_native_json
+|   |   +-- test_json_logic.cpp
+|   +-- test_native_stress
+|       |-- test_logic_comprehensive.cpp
+|       |-- test_main.cpp
+|       |-- test_simulation.cpp
+|       +-- test_system_stress.cpp
+|-- .clang-format
+|-- .clang-format.bak
+|-- .codacy.yml
+|-- .gitignore
+|-- .hintrc
+|-- .lizardrc
+|-- .pre-commit-config.yaml
+|-- audit_prompt.md
+|-- build_all.bat
+|-- cert.pem
+|-- compile_commands.json
+|-- isrgrootx1.pem
+|-- Justfile
+|-- node_id.ini
+|-- openssl-san.cnf
+|-- package-lock.json
+|-- package.json
+|-- platformio.ini
+|-- private.key
+|-- README.md
+|-- repro_bug.js
+|-- SECURITY.md
+|-- test_concat_nan.js
+|-- test_repro.js
++-- watchers.js

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentasi Sistem Node Medini</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #27ae60;
+            --bg: #f8f9fa;
+            --text: #333;
+            --code-bg: #e9ecef;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--bg);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        h1 { color: var(--primary); margin: 0; font-size: 2.5em; }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-top: 40px; }
+        h3 { color: var(--accent); }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #c7254e;
+        }
+        
+        .highlight {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent);
+            margin: 20px 0;
+        }
+        
+        .diagram {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Node Medini: Arsitektur Sistem</h1>
+    <p>Dokumentasi Teknis & Gambaran Besar (The Big Picture)</p>
+</header>
+
+<div class="highlight">
+    <strong>Sistem ini telah terverifikasi secara formal.</strong><br>
+    Dilengkapi dengan fitur <em>Self-Healing</em>, <em>Deep Recovery</em>, dan <em>Mathematical Safety Proofs</em>.
+</div>
+
+<h2>1. Gambaran Besar (The Big Picture)</h2>
+<p>
+    Node Medini adalah sistem IoT <em>Hybrid Edge-Cloud</em> yang dirancang untuk ketahanan (resilience) ekstrem.
+    Sistem ini tidak hanya mengirim data sensor, tetapi juga menjamin integritas data meskipun terjadi pemadaman listrik,
+    kegagalan jaringan, atau korupsi memori fisik (Flash bit-rot).
+</p>
+
+<div class="diagram">
+    <svg width="800" height="200" viewBox="0 0 800 200">
+        <!-- Sensor -->
+        <rect x="50" y="75" width="100" height="50" rx="5" fill="#3498db" />
+        <text x="100" y="105" text-anchor="middle" fill="white">SENSOR</text>
+        
+        <!-- Arrow -->
+        <line x1="150" y1="100" x2="200" y2="100" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)" />
+        
+        <!-- Cache Manager (Core) -->
+        <rect x="200" y="50" width="200" height="100" rx="5" fill="#e74c3c" />
+        <text x="300" y="90" text-anchor="middle" fill="white" font-weight="bold">CACHE MANAGER</text>
+        <text x="300" y="110" text-anchor="middle" fill="white" font-size="12">Circular Buffer (Flash)</text>
+        <text x="300" y="125" text-anchor="middle" fill="white" font-size="10">Deep Recovery Logic</text>
+        
+        <!-- Arrow -->
+        <line x1="400" y1="100" x2="450" y2="100" stroke="#7f8c8d" stroke-width="2" marker-end="url(#arrow)" />
+        
+        <!-- Api Client -->
+        <rect x="450" y="75" width="120" height="50" rx="5" fill="#f1c40f" />
+        <text x="510" y="105" text-anchor="middle" fill="#333">API CLIENT</text>
+        
+        <!-- Branches -->
+        <line x1="570" y1="100" x2="620" y2="70" stroke="#27ae60" stroke-width="2" />
+        <line x1="570" y1="100" x2="620" y2="130" stroke="#8e44ad" stroke-width="2" />
+        
+        <rect x="620" y="50" width="100" height="40" rx="5" fill="#27ae60" />
+        <text x="670" y="75" text-anchor="middle" fill="white">CLOUD</text>
+        
+        <rect x="620" y="110" width="100" height="40" rx="5" fill="#8e44ad" />
+        <text x="670" y="135" text-anchor="middle" fill="white">EDGE (GW)</text>
+        
+        <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L9,3 z" fill="#7f8c8d" />
+            </marker>
+        </defs>
+    </svg>
+</div>
+
+<h2>2. Fitur Keamanan & Reliabilitas</h2>
+<div class="card-grid">
+    <div class="card">
+        <h3>🛡️ Formal Safety</h3>
+        <p>Pointer aritmatika circular buffer diverifikasi dengan <code>static_assert</code> pada saat kompilasi. 
+        Runtime Invariant checks menjamin Pointer tidak akan pernah keluar jalur (OutOfBounds).</p>
+    </div>
+    <div class="card">
+        <h3>💾 Deep Recovery</h3>
+        <p>Jika terjadi korupsi data (Bit Rot) pada Magic Byte header, sistem <strong>TIDAK</strong> langsung membuang data.
+        Sistem akan mencoba melakukan validasi CRC pada payload. Jika CRC valid, data diselamatkan (Salvaged).</p>
+    </div>
+    <div class="card">
+        <h3>🔋 Power Safety</h3>
+        <p>Setiap penulisan data di-flush ke disk seketika. Metadata (Head/Tail) selalu sinkron dengan fisik.
+        Tahan terhadap cabut listrik mendadak.</p>
+    </div>
+    <div class="card">
+        <h3>🔄 Auto-Healing</h3>
+        <p>Mendeteksi fragmentasi memori (Heap) dan melakukan reboot otomatis jika kritis.
+        Mendeteksi koneksi gagal dan melakukan toggling WiFi otomatis setelah 5x percobaan.</p>
+    </div>
+</div>
+
+<h2>3. Strategi Pengiriman Data (Hybrid Mode)</h2>
+<p>Sistem ini cerdas dalam memilih jalur pengiriman data:</p>
+<ul>
+    <li><strong>AUTO Mode</strong>: Mencoba Cloud terlebih dahulu. Jika gagal 5x, fallback ke Local Gateway.</li>
+    <li><strong>EDGE Mode</strong>: Mengutamakan Local Gateway untuk latensi rendah, namun tetap menyimpan data di Cache untuk sinkronisasi Cloud di latar belakang (Background Sync).</li>
+    <li><strong>CLOUD Mode</strong>: Direct upload ke server pusat.</li>
+</ul>
+
+<h2>4. Struktur Kode</h2>
+<ul>
+    <li><code>CacheManager.cpp</code>: Jantung penyimpanan data offline. Menangani I/O Flash dan Error Correction.</li>
+    <li><code>ApiClient.cpp</code>: Otak komunikasi. Menangani State Machine, Retry Logic, dan WiFi Recovery.</li>
+    <li><code>ConfigManager.h</code>: Konfigurasi terpusat dengan memory alignment yang optimal (Packing Holes eliminated).</li>
+</ul>
+
+<footer>
+    <p>&copy; 2026 Node Medini Project. Dibuat dengan presisi tinggi untuk Green House Automation.</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,165 @@
+name: CI, Analysis & Docs Build
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  # --- JOB 1: Build Firmware ---
+  build-and-test:
+    name: Build Firmware
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO & Pip
+        uses: actions/cache@v5.0.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Install PlatformIO Core
+        run: pip install platformio==6.1.15
+
+      - name: Build firmware
+        run: pio run
+
+  # --- JOB 2: Static Analysis (cppcheck + clang-tidy) ---
+  static-analysis:
+    name: Static Analysis (cppcheck + clang-tidy)
+    runs-on: ubuntu-latest
+    needs: build-and-test  # Run only if build succeeds
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO & Pip
+        uses: actions/cache@v5.0.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-check-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-check-
+
+      - name: Install PlatformIO Core
+        run: pip install platformio==6.1.15
+
+      - name: Install cppcheck and clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck clang-tidy
+
+      - name: Run PlatformIO Static Analysis
+        run: pio check --fail-on-defect=high --skip-packages
+        continue-on-error: true  # Allow workflow to complete even with warnings
+
+      - name: Upload Analysis Results
+        uses: actions/upload-artifact@v6.0.0
+        if: always()
+        with:
+          name: static-analysis-results
+          path: |
+            clang_tidy_fixes.yaml
+          retention-days: 30
+
+  # --- JOB 3: Codacy Analysis ---
+  codacy-analysis:
+    name: Codacy Code Quality Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Run Codacy Analysis CLI
+        # Pinned to v4.4.7 commit SHA for security
+        uses: codacy/codacy-analysis-cli-action@4.4.7
+        with:
+          # If CODACY_PROJECT_TOKEN is not set, runs in local-only mode
+          project-token: REDACTED
+          upload: true
+          verbose: true
+          # Force analysis even without token (local mode)
+          run-docker-tools: true
+          # Output format for debugging
+          format: sarif
+          output: codacy-results.sarif
+        continue-on-error: true
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4.0.0
+        if: always()
+        with:
+          sarif_file: codacy-results.sarif
+        continue-on-error: true
+
+  # -----------------------------------------------------------------------------
+  # JOB 4: DEPLOY DOCS TO NETLIFY
+  # -----------------------------------------------------------------------------
+  deploy-docs:
+    name: Deploy Docs to Netlify
+    runs-on: ubuntu-latest
+    needs: [build-and-test] # Deploy only if build passes
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v6.0.0
+    
+    - name: Deploy to Netlify
+      uses: nwtgck/actions-netlify@v2.0.0
+      with:
+        publish-dir: './docs'
+        production-branch: main
+        github-token: REDACTED
+        deploy-message: "Deploy from GitHub Actions: ${{ github.event.head_commit.message }}"
+        enable-pull-request-comment: false
+        enable-commit-comment: true
+        overwrites-pull-request-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: REDACTED
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      timeout-minutes: 1
+
+

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Connection Successful!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-gradient: linear-gradient(145deg, #050608 0%, #0a0d12 50%, #0f1318 100%);
+      --surface: rgba(20, 25, 32, 0.85);
+      --surface-2: rgba(30, 37, 48, 0.8);
+      --accent: #00d4ff;
+      --accent-rgb: 0, 212, 255;
+      --success: #22c55e;
+      --success-rgb: 34, 197, 94;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --border: rgba(148, 163, 184, 0.12);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      position: relative;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% 30%, rgba(var(--success-rgb), 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 80% 70%, rgba(var(--accent-rgb), 0.08) 0%, transparent 50%);
+      pointer-events: none;
+      animation: ambientFloat 8s ease-in-out infinite;
+    }
+
+    @keyframes ambientFloat {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      padding: 56px 48px;
+      border-radius: var(--radius);
+      text-align: center;
+      max-width: 440px;
+      width: 100%;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.5),
+        0 0 100px rgba(var(--success-rgb), 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      animation: cardEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes cardEnter {
+      0% {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--success), #4ade80, var(--success));
+    }
+
+    .success-icon-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 28px;
+    }
+
+    .success-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top-color: var(--success);
+      animation: successRing 0.8s ease-out forwards;
+    }
+
+    @keyframes successRing {
+      0% {
+        transform: rotate(0deg) scale(0.8);
+        opacity: 0;
+      }
+
+      100% {
+        transform: rotate(360deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .success-ring-inner {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(var(--success-rgb), 0.15), rgba(var(--success-rgb), 0.05));
+      animation: successPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes successPulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    .success-icon {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: checkmarkDraw 0.5s ease-out 0.3s backwards;
+    }
+
+    @keyframes checkmarkDraw {
+      0% {
+        opacity: 0;
+        transform: scale(0);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .success-icon svg {
+      width: 48px;
+      height: 48px;
+      filter: drop-shadow(0 4px 16px rgba(var(--success-rgb), 0.5));
+    }
+
+    .success-icon svg path,
+    .success-icon svg polyline {
+      stroke: var(--success);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 14px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text) 20%, var(--success) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.7;
+      font-weight: 500;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: sparkle 1.5s ease-in-out infinite;
+    }
+
+    .sparkle:nth-child(1) {
+      top: 20%;
+      left: 15%;
+      animation-delay: 0s;
+    }
+
+    .sparkle:nth-child(2) {
+      top: 30%;
+      right: 20%;
+      animation-delay: 0.3s;
+    }
+
+    .sparkle:nth-child(3) {
+      bottom: 35%;
+      left: 25%;
+      animation-delay: 0.6s;
+    }
+
+    .sparkle:nth-child(4) {
+      bottom: 25%;
+      right: 15%;
+      animation-delay: 0.9s;
+    }
+
+    @keyframes sparkle {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: scale(0);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 48px 32px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .success-icon-container {
+        width: 80px;
+        height: 80px;
+      }
+
+      .success-icon svg {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+    <div class="sparkle"></div>
+
+    <div class="success-icon-container">
+      <div class="success-ring"></div>
+      <div class="success-ring-inner"></div>
+      <div class="success-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+    </div>
+    <h1>Connection Successful!</h1>
+    <p>Your device is now connected to the network and will restart automatically.</p>
+  </div>
+</body>
+
+</html>

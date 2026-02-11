@@ -1,0 +1,1127 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>GH Node - WiFi Setup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --bg-gradient: linear-gradient(145deg,
+          #050608 0%,
+          #0a0d12 50%,
+          #0f1318 100%);
+      --surface: rgba(20, 25, 32, 0.75);
+      --surface-2: rgba(30, 37, 48, 0.8);
+      --surface-glow: rgba(0, 217, 255, 0.03);
+      --accent: #00d4ff;
+      --accent-rgb: 0, 212, 255;
+      --accent-secondary: #7c3aed;
+      --accent-secondary-rgb: 124, 58, 237;
+      --accent-dim: rgba(0, 212, 255, 0.08);
+      --accent-glow: rgba(0, 212, 255, 0.15);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --success: #22c55e;
+      --success-rgb: 34, 197, 94;
+      --warning: #eab308;
+      --error: #ef4444;
+      --border: rgba(148, 163, 184, 0.12);
+      --border-hover: rgba(148, 163, 184, 0.25);
+      --radius: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -20%,
+          rgba(var(--accent-rgb), 0.08) 0%,
+          transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 50%,
+          rgba(var(--accent-secondary-rgb), 0.05) 0%,
+          transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 28px 24px 24px;
+      text-align: center;
+      background: linear-gradient(180deg,
+          rgba(0, 212, 255, 0.04) 0%,
+          transparent 100%);
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      max-width: 400px;
+      height: 1px;
+      background: linear-gradient(90deg,
+          transparent,
+          rgba(var(--accent-rgb), 0.3),
+          transparent);
+    }
+
+    .header-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: linear-gradient(145deg,
+          rgba(var(--accent-rgb), 0.15),
+          rgba(var(--accent-secondary-rgb), 0.1));
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      border: 1px solid rgba(var(--accent-rgb), 0.2);
+      box-shadow:
+        0 0 40px rgba(var(--accent-rgb), 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg,
+          var(--text) 0%,
+          var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    #device-id {
+      display: inline-block;
+      background: var(--surface-2);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: "SF Mono", "Monaco", monospace;
+      font-size: 0.75rem;
+      margin-top: 12px;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      letter-spacing: 0.03em;
+    }
+
+    main {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
+      position: relative;
+      z-index: 10;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 6px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .tab {
+      flex: 1;
+      padding: 14px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg,
+          var(--accent),
+          var(--accent-secondary));
+      color: #fff;
+      box-shadow:
+        0 4px 15px rgba(var(--accent-rgb), 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .tab:not(.active):hover {
+      background: var(--accent-dim);
+      color: var(--text);
+    }
+
+    .panel {
+      display: none;
+      animation: fadeSlideIn 0.3s ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #network-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .network-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .network-item::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+          rgba(var(--accent-rgb), 0.05),
+          transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .network-item:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .network-item:hover::before {
+      opacity: 1;
+    }
+
+    .network-item.selected {
+      border-color: var(--accent);
+      background: linear-gradient(135deg,
+          rgba(var(--accent-rgb), 0.1),
+          rgba(var(--accent-secondary-rgb), 0.05));
+      box-shadow:
+        0 0 0 1px rgba(var(--accent-rgb), 0.2),
+        0 8px 25px rgba(var(--accent-rgb), 0.15);
+    }
+
+    .network-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .network-ssid {
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: -0.01em;
+    }
+
+    .network-meta {
+      display: flex;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      align-items: center;
+    }
+
+    .badge {
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge.known {
+      background: rgba(var(--success-rgb), 0.15);
+      color: var(--success);
+      border: 1px solid rgba(var(--success-rgb), 0.25);
+    }
+
+    .badge.open {
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--warning);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+    }
+
+    .network-signal {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      position: relative;
+      z-index: 1;
+    }
+
+    .signal-bar {
+      width: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: all 0.2s ease;
+    }
+
+    .signal-bar.active {
+      background: linear-gradient(180deg,
+          var(--accent),
+          var(--accent-secondary));
+      box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.4);
+    }
+
+    .signal-bar:nth-child(1) {
+      height: 6px;
+    }
+
+    .signal-bar:nth-child(2) {
+      height: 10px;
+    }
+
+    .signal-bar:nth-child(3) {
+      height: 14px;
+    }
+
+    .signal-bar:nth-child(4) {
+      height: 18px;
+    }
+
+    .state-msg {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+    }
+
+    .state-msg .icon {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.2);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 16px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: rgba(10, 15, 20, 0.8);
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow:
+        0 0 0 3px rgba(var(--accent-rgb), 0.1),
+        0 0 20px rgba(var(--accent-rgb), 0.1);
+    }
+
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 1rem;
+      transition: color 0.2s ease;
+    }
+
+    .toggle-pass:REDACTED
+      color: var(--text);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 18px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg,
+          var(--accent),
+          var(--accent-secondary));
+      color: #fff;
+      box-shadow:
+        0 4px 20px rgba(var(--accent-rgb), 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-primary::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow:
+        0 8px 30px rgba(var(--accent-rgb), 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+    }
+
+    .btn-secondary:hover {
+      background: var(--accent-dim);
+      border-color: var(--accent);
+    }
+
+    .btn-refresh {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 12px 18px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-refresh:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.15);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 420px) {
+      .button-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .selected-network {
+      background: linear-gradient(135deg,
+          rgba(var(--accent-rgb), 0.1),
+          rgba(var(--accent-secondary-rgb), 0.05));
+      border: 1px solid rgba(var(--accent-rgb), 0.3);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(20px);
+    }
+
+    .selected-network .ssid {
+      font-weight: 700;
+      color: var(--accent);
+      font-size: 0.95rem;
+    }
+
+    .selected-network .clear {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .selected-network .clear:hover {
+      color: var(--error);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .alert {
+      padding: 14px 18px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(20px);
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: var(--error);
+    }
+
+    .alert-success {
+      background: rgba(var(--success-rgb), 0.12);
+      border: 1px solid rgba(var(--success-rgb), 0.25);
+      color: var(--success);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg,
+          transparent,
+          var(--border),
+          transparent);
+    }
+
+    .divider span {
+      padding: 0 16px;
+    }
+
+    .hidden-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px 18px;
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .hidden-toggle:hover {
+      border-color: var(--border-hover);
+      background: var(--accent-dim);
+    }
+
+    .hidden-toggle input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .hidden-toggle span {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    @media (max-width: 400px) {
+      header {
+        padding: 20px 16px;
+      }
+
+      header h1 {
+        font-size: 1.25rem;
+      }
+
+      .header-icon {
+        width: 56px;
+        height: 56px;
+      }
+
+      .tab {
+        padding: 12px;
+        font-size: 0.8rem;
+      }
+
+      .network-item {
+        padding: 14px 16px;
+      }
+
+      main {
+        padding: 16px;
+      }
+    }
+  </style>
+  <script>
+    var cryptoLoaded = false;
+    var cryptoLoadError = null;
+    var cryptoRetries = 0;
+    var maxCryptoRetries = 3;
+    function loadCryptoScript() {
+      var script = document.createElement('script');
+      script.src = '/crypto.js?r=' + cryptoRetries;
+      script.onload = function () {
+        cryptoLoaded = true;
+        if (typeof onCryptoReady === 'function') onCryptoReady();
+      };
+      script.onerror = function () {
+        if (cryptoRetries++ < maxCryptoRetries) {
+          setTimeout(loadCryptoScript, 800);
+        } else {
+          cryptoLoadError = 'Failed after ' + maxCryptoRetries + ' retries';
+          if (typeof onCryptoReady === 'function') onCryptoReady();
+        }
+      };
+      document.head.appendChild(script);
+    }
+    setTimeout(loadCryptoScript, 300);
+  </script>
+</head>
+
+<body>
+  <header>
+    <div class="header-icon">📡</div>
+    <h1>WiFi Setup</h1>
+    <p>Connect your greenhouse node to the network</p>
+    <div id="device-id">Device</div>
+  </header>
+
+  <main>
+    <div id="error-msg" class="alert alert-error" style="display: none"></div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="scan">Scan Networks</button>
+      <button class="tab" data-tab="manual">Manual Entry</button>
+    </div>
+
+    <div id="scan-panel" class="panel active">
+      <div class="button-row">
+        <button class="btn btn-refresh" onclick="refreshNetworks()">
+          ↻ Refresh Networks
+        </button>
+        <button class="btn btn-secondary" onclick="requestRescan()">
+          ⟳ Rescan (Reboot)
+        </button>
+      </div>
+
+      <div id="network-list">
+        <div class="state-msg">
+          <div class="icon">📡</div>
+          <div>Tap Refresh to scan for networks</div>
+        </div>
+      </div>
+
+      <form id="scan-form" action="/save" method="POST" style="display: none; margin-top: 24px">
+        <div class="selected-network">
+          <span class="ssid" id="selected-ssid">-</span>
+          <button type="button" class="clear" onclick="clearSelection()">
+            ✕ Clear
+          </button>
+        </div>
+        <input type="hidden" name="ssid" id="scan-ssid-input" />
+        <div class="form-group" id="scan-password-group">
+          <label for="scan-pass">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="scan-pass" name="pass" placeholder="Enter network password" />
+            <button type="button" class="toggle-pass" onclick="togglePass('scan-pass')">
+              👁
+            </button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Connect</button>
+      </form>
+    </div>
+
+    <div id="manual-panel" class="panel">
+      <form action="/save" method="POST">
+        <label class="hidden-toggle">
+          <input type="checkbox" id="hidden-ssid" name="hidden" />
+          <span>Hidden Network (SSID not broadcast)</span>
+        </label>
+
+        <div class="form-group">
+          <label for="manual-ssid">Network Name (SSID)</label>
+          <input type="text" id="manual-ssid" name="ssid" placeholder="Enter network name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="manual-pass">Password</label>
+          <div class="input-wrapper">
+            <input type="password" id="manual-pass" name="pass"
+              placeholder="Enter password (leave empty for open networks)" />
+            <button type="button" class="toggle-pass" onclick="togglePass('manual-pass')">
+              👁
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Connect</button>
+      </form>
+    </div>
+
+    <div class="divider"><span>ADVANCED</span></div>
+
+    <button class="btn btn-secondary" onclick="confirmFactoryReset()"
+      style="color: var(--error); border-color: rgba(239, 68, 68, 0.4)">
+      ⚠ FACTORY RESET DEVICE
+    </button>
+  </main>
+
+  <script>
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document
+          .querySelectorAll(".tab")
+          .forEach((t) => t.classList.remove("active"));
+        document
+          .querySelectorAll(".panel")
+          .forEach((p) => p.classList.remove("active"));
+        tab.classList.add("active");
+        document
+          .getElementById(tab.dataset.tab + "-panel")
+          .classList.add("active");
+      });
+    });
+
+    function togglePass(id) {
+      const input = document.getElementById(id);
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    let networks = [];
+    let selectedNetwork = null;
+
+    function renderScanMessage(icon, message) {
+      const list = document.getElementById("network-list");
+      if (!list) return;
+      list.innerHTML = `<div class="state-msg"><div class="icon">${icon}</div><div>${message}</div></div>`;
+    }
+
+    function showScanError(err) {
+      if (!err || !err.error) {
+        renderScanMessage("⚠️", "Failed to scan. Try again.");
+        return;
+      }
+      if (err.error === "low_memory") {
+        renderScanMessage(
+          "🧠",
+          "Low memory. Use Manual Entry or tap Rescan (Reboot).",
+        );
+        return;
+      }
+      if (err.error === "sta_disabled") {
+        renderScanMessage("📡", "Scan unavailable in AP-only mode. Use Manual Entry.");
+        return;
+      }
+      renderScanMessage("⚠️", "Failed to scan. Try again.");
+    }
+
+    async function refreshNetworks(forceNewScan = true) {
+      const list = document.getElementById("network-list");
+      list.innerHTML =
+        '<div class="state-msg"><div class="spinner"></div><div>Scanning...</div></div>';
+
+      try {
+        if (forceNewScan) {
+          const scanRes = await fetch("/scan", { method: "POST" });
+          let scanData = null;
+          try {
+            scanData = await scanRes.json();
+          } catch (e) {
+            scanData = null;
+          }
+          if (scanData && scanData.mode === "ap_off") {
+            renderScanMessage(
+              "📡",
+              "Scanning with AP off. Reconnect to the AP in a few seconds.",
+            );
+            return;
+          }
+          if (!scanRes.ok || (scanData && scanData.error)) {
+            showScanError(scanData);
+            return;
+          }
+        }
+
+        const res = await fetch("/networks");
+        const data = await res.json();
+
+        if (data && data.error) {
+          showScanError(data);
+          return;
+        }
+        if (data.scanning) {
+          setTimeout(() => refreshNetworks(false), 1500);
+          return;
+        }
+
+        networks = data.networks || [];
+        renderNetworks();
+      } catch (e) {
+        list.innerHTML =
+          '<div class="state-msg"><div class="icon">⚠️</div><div>Failed to scan. Try again.</div></div>';
+      }
+    }
+
+    function renderNetworks() {
+      const list = document.getElementById("network-list");
+
+      if (networks.length === 0) {
+        list.innerHTML =
+          '<div class="state-msg"><div class="icon">📡</div><div>No networks found</div></div>';
+        return;
+      }
+
+      networks.sort((a, b) => {
+        if (a.known !== b.known) return b.known - a.known;
+        return b.rssi - a.rssi;
+      });
+
+      list.innerHTML = networks
+        .map(
+          (n, i) => `
+        <div class="network-item ${selectedNetwork === n.ssid ? "selected" : ""}" onclick="selectNetwork(${i})">
+          <div class="network-info">
+            <div class="network-ssid">${escapeHtml(n.ssid)}</div>
+            <div class="network-meta">
+              ${n.known ? '<span class="badge known">Saved</span>' : ""}
+              ${n.open ? '<span class="badge open">Open</span>' : "🔒"}
+              <span>${n.rssi} dBm</span>
+            </div>
+          </div>
+          <div class="network-signal">
+            ${[1, 2, 3, 4].map((bar) => `<div class="signal-bar ${bar <= n.bars ? "active" : ""}"></div>`).join("")}
+          </div>
+        </div>
+      `,
+        )
+        .join("");
+    }
+
+    function selectNetwork(index) {
+      const n = networks[index];
+      selectedNetwork = n.ssid;
+
+      document.getElementById("selected-ssid").textContent = REDACTED
+      document.getElementById("scan-ssid-input").value = REDACTED
+      document.getElementById("scan-form").style.display = "block";
+
+      const pwGroup = document.getElementById("scan-password-group");
+      pwGroup.style.display = n.open ? "none" : "block";
+
+      renderNetworks();
+      document
+        .getElementById("scan-form")
+        .scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function clearSelection() {
+      selectedNetwork = null;
+      document.getElementById("scan-form").style.display = "none";
+      document.getElementById("scan-pass").value = REDACTED
+      renderNetworks();
+    }
+
+    function escapeHtml(str) {
+      return str.replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;",
+          })[c],
+      );
+    }
+
+    async function updatePortalStatus() {
+      const errEl = document.getElementById("error-msg");
+      if (!errEl) return;
+      try {
+        const res = await fetch("/status");
+        const data = await res.json();
+        if (data && data.status === "fail") {
+          errEl.textContent = data.message || "Connection failed.";
+          errEl.style.display = "flex";
+        } else {
+          errEl.textContent = "";
+          errEl.style.display = "none";
+        }
+      } catch (e) {
+        // If status fails, keep UI quiet.
+      }
+    }
+
+    function initPortalInfo() {
+      const deviceEl = document.getElementById("device-id");
+      if (deviceEl) {
+        deviceEl.textContent =
+          window.location.hostname && window.location.hostname !== ""
+            ? window.location.hostname
+            : "Device";
+      }
+      updatePortalStatus();
+      setInterval(updatePortalStatus, 2000);
+    }
+
+    async function confirmFactoryReset() {
+      if (
+        confirm(
+          "WARNING: This will erase ALL settings and WiFi credentials. Are you sure?",
+        )
+      ) {
+        try {
+          const btn = event.target;
+          btn.disabled = true;
+          btn.textContent = "Resetting...";
+
+          await fetch("/factory-reset", { method: "POST" });
+          alert(
+            "REDACTED",
+          );
+          location.reload();
+        } catch (e) {
+          alert("Failed to trigger reset.");
+        }
+      }
+    }
+
+    function requestRescan() {
+      if (!confirm("Rescan needs a reboot. Continue?")) return;
+      fetch("/rescan", { method: "POST" })
+        .then(() => {
+          renderScanMessage("🔁", "Rebooting to rescan. Reconnect to the AP.");
+        })
+        .catch(() => {
+          renderScanMessage("⚠️", "Failed to request rescan.");
+        });
+    }
+
+    function onCryptoReady() {}
+
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const passInput = REDACTED
+      const pass = REDACTED
+
+      if (!pass) {
+        form.submit();
+        return;
+      }
+
+      if (typeof CryptoJS === "undefined" || !CryptoJS.AES) {
+        var errMsg = cryptoLoadError || "CryptoJS not available";
+        if (confirm("REDACTED" + errMsg + "REDACTED")) {
+          form.submit();
+        }
+        return;
+      }
+
+      try {
+        const keyHex = CryptoJS.enc.Utf8.parse(
+          "12345678901234567890123456789012",
+        );
+        const iv = CryptoJS.lib.WordArray.random(16);
+
+        const ts = Math.floor(Date.now() / 1000) | 0;
+        const payload = CryptoJS.lib.WordArray.create([ts], 4);
+        payload.concat(CryptoJS.enc.Utf8.parse(pass));
+
+        const encrypted = CryptoJS.AES.encrypt(payload, keyHex, {
+          iv: iv,
+          mode: CryptoJS.mode.CBC,
+          padding: CryptoJS.pad.Pkcs7,
+        });
+
+        const ivB64 = CryptoJS.enc.Base64.stringify(iv);
+        const cipherB64 = CryptoJS.enc.Base64.stringify(encrypted.ciphertext);
+
+        passInput.value = REDACTED
+
+        form.submit();
+      } catch (err) {
+        console.error("Encryption failed", err);
+        alert("Securing credentials failed. Please try again.");
+      }
+    }
+
+    // Remove old listeners first (idempotent)
+    const scanForm = document.getElementById("scan-form");
+    if (scanForm) {
+      scanForm.removeEventListener("submit", handleFormSubmit);
+      scanForm.addEventListener("submit", handleFormSubmit);
+    }
+
+    const manualForm = document.querySelector("#manual-panel form");
+    if (manualForm) {
+      manualForm.removeEventListener("submit", handleFormSubmit);
+      manualForm.addEventListener("submit", handleFormSubmit);
+    }
+
+    initPortalInfo();
+    refreshNetworks(false);
+  </script>
+</body>
+
+</html>
+

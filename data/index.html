@@ -1,0 +1,1849 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>GH Node Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0e13;
+        --bg-gradient: linear-gradient(
+          145deg,
+          #0a0e13 0%,
+          #0f1419 50%,
+          #131a22 100%
+        );
+        --surface: rgba(26, 31, 38, 0.85);
+        --surface-solid: #1a1f26;
+        --surface-2: rgba(36, 42, 51, 0.9);
+        --surface-glow: rgba(139, 233, 253, 0.03);
+        --accent: #00d9ff;
+        --accent-secondary: #6366f1;
+        --accent-dim: rgba(0, 217, 255, 0.12);
+        --accent-glow: rgba(0, 217, 255, 0.25);
+        --text: #f0f4f8;
+        --text-secondary: #94a3b8;
+        --muted: #64748b;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --error: #ef4444;
+        --border: rgba(100, 116, 139, 0.2);
+        --border-light: rgba(100, 116, 139, 0.1);
+        --nav-h: 68px;
+        --header-h: 60px;
+        --radius: 16px;
+        --radius-sm: 10px;
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+        --shadow-glow: 0 0 20px rgba(0, 217, 255, 0.15);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        overflow: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        background: var(--bg-gradient);
+        background-attachment: fixed;
+      }
+
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(
+          180deg,
+          var(--accent) 0%,
+          var(--accent-secondary) 100%
+        );
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent);
+      }
+
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--accent) transparent;
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--header-h);
+        background: linear-gradient(
+          180deg,
+          rgba(10, 14, 19, 0.95) 0%,
+          rgba(26, 31, 38, 0.9) 100%
+        );
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        z-index: 100;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo-icon {
+        font-size: 1.6rem;
+        filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+      }
+
+      .logo-text {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      .logo-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.02em;
+      }
+
+      .logo-version {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: var(--muted);
+        background: var(--surface-2);
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid var(--border-light);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      #node-id {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        background: var(--surface-2);
+        padding: 6px 12px;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        letter-spacing: 0.02em;
+      }
+
+      #status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--muted);
+        transition: all 0.3s ease;
+      }
+
+      #status-dot.ok {
+        background: var(--success);
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        animation: statusPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes statusPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+
+        50% {
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+        }
+      }
+
+      main {
+        position: absolute;
+        top: var(--header-h);
+        bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+        left: 0;
+        right: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .page {
+        display: none;
+        padding-bottom: 40px;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: calc(var(--nav-h) + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+        background: linear-gradient(
+          180deg,
+          rgba(26, 31, 38, 0.95) 0%,
+          rgba(10, 14, 19, 0.98) 100%
+        );
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border);
+        display: flex;
+        z-index: 100;
+      }
+
+      .nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.65rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        position: relative;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+      }
+
+      .nav-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          var(--accent),
+          var(--accent-secondary)
+        );
+        border-radius: 0 0 2px 2px;
+        transition: width 0.25s ease;
+      }
+
+      .nav-item .icon {
+        font-size: 1.3rem;
+        transition: transform 0.25s ease;
+      }
+
+      .nav-item:hover .icon {
+        transform: translateY(-2px);
+      }
+
+      .nav-item.active {
+        color: var(--accent);
+      }
+
+      .nav-item.active::before {
+        width: 32px;
+      }
+
+      .card {
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        padding: 20px;
+        margin: 14px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        border-color: var(--border-light);
+        box-shadow: var(--shadow-md);
+      }
+
+      .card-title {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 16px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .sensor-row {
+        display: flex;
+        gap: 14px;
+        padding: 14px;
+      }
+
+      .sensor-card {
+        flex: 1;
+        background: linear-gradient(
+          145deg,
+          var(--surface) 0%,
+          var(--surface-2) 100%
+        );
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        padding: 24px 20px;
+        text-align: center;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sensor-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent-dim),
+          transparent
+        );
+      }
+
+      .sensor-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .sensor-icon {
+        font-size: 2.2rem;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+      }
+
+      .sensor-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        transition: all 0.3s ease;
+      }
+
+      .sensor-unit {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .sensor-label {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+
+      .temp-cold .sensor-value {
+        color: #38bdf8;
+        text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      }
+
+      .temp-normal .sensor-value {
+        color: #10b981;
+        text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      }
+
+      .temp-warm .sensor-value {
+        color: #f59e0b;
+        font-size: 2.4rem;
+        text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+      }
+
+      .temp-hot .sensor-value {
+        color: #ef4444;
+        font-size: 2.6rem;
+        text-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+        animation: pulse 1s infinite;
+      }
+
+      .temp-hot.sensor-card {
+        border-color: rgba(239, 68, 68, 0.5);
+        box-shadow:
+          0 0 30px rgba(239, 68, 68, 0.2),
+          var(--shadow-md);
+      }
+
+      .hum-low .sensor-value {
+        color: #f59e0b;
+        font-size: 2.4rem;
+        text-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+      }
+
+      .hum-normal .sensor-value {
+        color: #10b981;
+        text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      }
+
+      .hum-high .sensor-value {
+        color: #ef4444;
+        font-size: 2.6rem;
+        text-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
+        animation: pulse 1s infinite;
+      }
+
+      .hum-high.sensor-card {
+        border-color: rgba(239, 68, 68, 0.5);
+        box-shadow:
+          0 0 30px rgba(239, 68, 68, 0.2),
+          var(--shadow-md);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      .sensor-invalid .sensor-value {
+        color: var(--muted);
+      }
+
+      .threshold-bar {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        margin-top: 14px;
+        position: relative;
+        overflow: visible;
+      }
+
+      .threshold-bar-bg {
+        display: flex;
+        height: 100%;
+        border-radius: 3px;
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .temp-zone-cold {
+        background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+        flex: 18;
+      }
+
+      .temp-zone-normal {
+        background: linear-gradient(90deg, #10b981, #34d399);
+        flex: 10;
+      }
+
+      .temp-zone-warm {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        flex: 4;
+      }
+
+      .temp-zone-hot {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+        flex: 18;
+      }
+
+      .hum-zone-low {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        flex: 40;
+      }
+
+      .hum-zone-normal {
+        background: linear-gradient(90deg, #10b981, #34d399);
+        flex: 30;
+      }
+
+      .hum-zone-high {
+        background: linear-gradient(90deg, #ef4444, #f87171);
+        flex: 30;
+      }
+
+      .threshold-marker {
+        position: absolute;
+        width: 4px;
+        height: 16px;
+        background: #fff;
+        border-radius: 2px;
+        top: -5px;
+        transform: translateX(-50%);
+        box-shadow:
+          0 0 8px rgba(255, 255, 255, 0.5),
+          0 2px 4px rgba(0, 0, 0, 0.3);
+        transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .threshold-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.55rem;
+        color: var(--muted);
+        margin-top: 4px;
+        font-weight: 500;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+        padding: 0 14px 14px;
+      }
+
+      .stat-card {
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .stat-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        background: linear-gradient(
+          135deg,
+          var(--accent) 0%,
+          var(--accent-secondary) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+        color: var(--muted);
+        margin-top: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+
+      .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .action-btn {
+        background: linear-gradient(
+          145deg,
+          var(--surface-2),
+          var(--surface-solid)
+        );
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 16px;
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--accent-dim),
+          transparent
+        );
+        transition: left 0.5s ease;
+      }
+
+      .action-btn:hover {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        box-shadow: var(--shadow-glow);
+        transform: translateY(-1px);
+      }
+
+      .action-btn:hover::before {
+        left: 100%;
+      }
+
+      .action-btn .icon {
+        font-size: 1.3rem;
+      }
+
+      .wifi-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 14px;
+      }
+
+      .wifi-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 18px;
+        background: var(--surface);
+        backdrop-filter: blur(10px);
+        border-radius: var(--radius);
+        cursor: pointer;
+        border: 1px solid var(--border);
+        transition: all 0.25s ease;
+      }
+
+      .wifi-item:REDACTED
+        border-color: var(--accent);
+        background: var(--accent-dim);
+        transform: translateX(4px);
+      }
+
+      .wifi-item.selected {
+        border-color: var(--accent);
+        background: var(--accent-dim);
+        box-shadow: var(--shadow-glow);
+      }
+
+      .wifi-ssid {
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      .wifi-meta {
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+
+      .wifi-signal {
+        display: flex;
+        gap: 3px;
+        align-items: flex-end;
+      }
+
+      .wifi-signal span {
+        width: 4px;
+        background: var(--border);
+        border-radius: 2px;
+        transition: background 0.2s ease;
+      }
+
+      .wifi-signal span.on {
+        background: linear-gradient(
+          180deg,
+          var(--accent),
+          var(--accent-secondary)
+        );
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      .form-group label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--muted);
+        margin-bottom: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--bg);
+        color: var(--text);
+        font-size: 1rem;
+        transition: all 0.25s ease;
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-dim);
+      }
+
+      .form-group input::placeholder {
+        color: var(--muted);
+      }
+
+      .btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-primary {
+        background: linear-gradient(
+          135deg,
+          var(--accent) 0%,
+          var(--accent-secondary) 100%
+        );
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
+      }
+
+      .btn-secondary {
+        background: var(--surface-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .btn-secondary:hover {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+      }
+
+      .refresh-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 14px;
+        transition: all 0.25s ease;
+      }
+
+      .refresh-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+
+      .spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 24px auto;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-msg {
+        text-align: center;
+        color: var(--muted);
+        padding: 48px;
+        font-weight: 500;
+      }
+
+      .page-header {
+        padding: 20px 16px 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .page-header-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(
+          135deg,
+          var(--accent-dim),
+          var(--surface-2)
+        );
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        border: 1px solid var(--border);
+      }
+
+      .page-header-text h2 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 2px;
+      }
+
+      .page-header-text p {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .section-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--accent-dim);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+      }
+
+      .section-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--text);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .config-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border-light);
+      }
+
+      .config-row:last-child {
+        border-bottom: none;
+      }
+
+      .config-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .config-label-icon {
+        font-size: 1rem;
+        opacity: 0.7;
+      }
+
+      .config-value {
+        font-family: "SF Mono", "Monaco", "Inconsolata", monospace;
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: var(--accent-dim);
+        padding: 4px 10px;
+        border-radius: 6px;
+      }
+
+      .wifi-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+
+      .wifi-status-badge.connected {
+        background: rgba(16, 185, 129, 0.15);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+
+      .wifi-status-badge.saved {
+        background: rgba(99, 102, 241, 0.15);
+        color: var(--accent-secondary);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+      }
+
+      .wifi-status-badge.open {
+        background: rgba(245, 158, 11, 0.15);
+        color: var(--warning);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+      }
+
+      .network-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.25s ease;
+      }
+
+      .network-card:hover {
+        border-color: var(--accent);
+        background: var(--accent-dim);
+      }
+
+      .network-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .network-card-ssid {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .network-card-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .network-rssi {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .checkbox-group:hover {
+        background: var(--accent-dim);
+      }
+
+      .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+        cursor: pointer;
+      }
+
+      .checkbox-group label {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        margin: 0;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .info-item {
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        padding: 14px;
+        border: 1px solid var(--border-light);
+      }
+
+      .info-item-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .info-item-value {
+        font-family: "SF Mono", "Monaco", monospace;
+        font-size: 0.9rem;
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .info-item-value.accent {
+        color: var(--accent);
+      }
+
+      .saved-network-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        margin-bottom: 8px;
+        border: 1px solid var(--border-light);
+        transition: all 0.2s ease;
+      }
+
+      .saved-network-item:hover {
+        border-color: var(--border);
+      }
+
+      .saved-network-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .saved-network-status {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+
+      .saved-network-status.online {
+        background: var(--success);
+        box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+      }
+
+      .saved-network-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .saved-network-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+      }
+
+      .btn-icon.danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: var(--error);
+      }
+
+      .btn-icon.danger:hover {
+        background: var(--error);
+        color: #fff;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 32px 20px;
+        color: var(--muted);
+      }
+
+      .empty-state-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        opacity: 0.5;
+      }
+
+      .empty-state-text {
+        font-size: 0.85rem;
+      }
+
+      .link-card {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 16px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        text-decoration: none;
+        color: var(--text);
+        margin-bottom: 10px;
+        transition: all 0.25s ease;
+      }
+
+      .link-card:hover {
+        background: var(--accent-dim);
+        border-color: var(--accent);
+        transform: translateX(4px);
+      }
+
+      .link-card-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-dim);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+      }
+
+      .link-card-content {
+        flex: 1;
+      }
+
+      .link-card-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 2px;
+      }
+
+      .link-card-desc {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .link-card-arrow {
+        color: var(--muted);
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="logo">
+        <span class="logo-icon">🌿</span>
+        <div class="logo-text">
+          <span class="logo-title">GH Node</span>
+          <span class="logo-version" id="fw-version">Loading...</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <div id="node-id">---</div>
+        <div id="status-dot"></div>
+      </div>
+    </header>
+
+    <main>
+      <!-- HOME PAGE -->
+      <div id="home-page" class="page active">
+        <div class="sensor-row">
+          <div class="sensor-card" id="temp-card">
+            <div class="sensor-icon">🌡️</div>
+            <div class="sensor-value" id="temp-val">--</div>
+            <div class="sensor-unit">°C</div>
+            <div class="sensor-label">Temperature</div>
+            <div class="threshold-bar">
+              <div class="threshold-bar-bg">
+                <div class="temp-zone-cold"></div>
+                <div class="temp-zone-normal"></div>
+                <div class="temp-zone-warm"></div>
+                <div class="temp-zone-hot"></div>
+              </div>
+              <div class="threshold-marker" id="temp-marker"></div>
+            </div>
+            <div class="threshold-labels">
+              <span>0°</span><span>18°</span><span>28°</span><span>50°</span>
+            </div>
+          </div>
+          <div class="sensor-card" id="hum-card">
+            <div class="sensor-icon">💧</div>
+            <div class="sensor-value" id="hum-val">--</div>
+            <div class="sensor-unit">%</div>
+            <div class="sensor-label">Humidity</div>
+            <div class="threshold-bar">
+              <div class="threshold-bar-bg">
+                <div class="hum-zone-low"></div>
+                <div class="hum-zone-normal"></div>
+                <div class="hum-zone-high"></div>
+              </div>
+              <div class="threshold-marker" id="hum-marker"></div>
+            </div>
+            <div class="threshold-labels">
+              <span>0%</span><span>40%</span><span>70%</span><span>100%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="lux-val">--</div>
+            <div class="stat-label">Light (lux)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="uptime-val">--</div>
+            <div class="stat-label">Uptime</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Quick Actions</div>
+          <div class="actions-grid">
+            <a href="/terminal" class="action-btn"
+              ><span class="icon">💻</span> Terminal</a
+            >
+            <a
+              href="#"
+              class="action-btn"
+              onclick="
+                switchPage("REDACTED");
+                return false;
+              "
+              ><span class="icon">📡</span> WiFi</a
+            >
+            <a
+              href="#"
+              class="action-btn"
+              onclick="
+                switchPage('config');
+                return false;
+              "
+              ><span class="icon">⚙️</span> Config</a
+            >
+            <a
+              href="#"
+              class="action-btn"
+              onclick="
+                refreshData();
+                return false;
+              "
+              ><span class="icon">🔄</span> Refresh</a
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- WIFI PAGE -->
+      <div id="wifi-page" class="page">
+        <div class="page-header">
+          <div class="page-header-icon">📡</div>
+          <div class="page-header-text">
+            <h2>WiFi Networks</h2>
+            <p>Manage your wireless connections</p>
+          </div>
+        </div>
+
+        <div style="padding: 0 14px">
+          <button
+            class="refresh-btn"
+            onclick="scanNetworks()"
+            style="margin: 0 0 14px 0; width: 100%; justify-content: center"
+          >
+            🔍 Scan for Networks
+          </button>
+        </div>
+
+        <div id="wifi-list" class="wifi-list">
+          <div class="loading-msg">
+            <div class="spinner"></div>
+            <div style="margin-top: 8px">Scanning for networks...</div>
+          </div>
+        </div>
+
+        <div id="wifi-form" class="card" style="display: none">
+          <div class="section-header">
+            <div class="section-icon">🔐</div>
+            <span class="section-title"
+              >Connect to
+              <span id="selected-ssid" style="color: var(--accent)"
+                >-</span
+              ></span
+            >
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              id="wifi-pass"
+              placeholder="Enter network password"
+            />
+          </div>
+          <button class="btn btn-primary" onclick="connectWifi()">
+            🔗 Connect Now
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-icon">👁️‍🗨️</div>
+            <span class="section-title">Hidden Network</span>
+          </div>
+          <div class="form-group">
+            <label>Network Name (SSID)</label>
+            <input
+              type="text"
+              id="manual-ssid"
+              placeholder="Enter hidden network name"
+            />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              id="manual-pass"
+              placeholder="Enter password"
+            />
+          </div>
+          <button class="btn btn-secondary" onclick="connectManual()">
+            Connect to Hidden Network
+          </button>
+        </div>
+      </div>
+
+      <!-- CONFIG PAGE -->
+      <div id="config-page" class="page">
+        <div class="page-header">
+          <div class="page-header-icon">⚙️</div>
+          <div class="page-header-text">
+            <h2>Configuration</h2>
+            <p>Device settings and system info</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-icon">📊</div>
+            <span class="section-title">System Status</span>
+          </div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-item-label">Firmware</div>
+              <div class="info-item-value accent" id="cfg-fw">-</div>
+            </div>
+            <div class="info-item">
+              <div class="info-item-label">Node ID</div>
+              <div class="info-item-value" id="cfg-node">-</div>
+            </div>
+            <div class="info-item">
+              <div class="info-item-label">WiFi Network</div>
+              <div class="info-item-value" id="cfg-wifi">-</div>
+            </div>
+            <div class="info-item">
+              <div class="info-item-label">IP Address</div>
+              <div class="info-item-value accent" id="cfg-ip">-</div>
+            </div>
+          </div>
+          <div class="info-item" style="margin-top: 12px">
+            <div class="info-item-label">Free Memory</div>
+            <div class="info-item-value" id="cfg-ram">-</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-icon">💾</div>
+            <span class="section-title">Saved Networks</span>
+          </div>
+          <div id="saved-wifi-list">
+            <div class="empty-state">
+              <div class="empty-state-icon">📶</div>
+              <div class="empty-state-text">Loading saved networks...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-icon">➕</div>
+            <span class="section-title">Add New Network</span>
+          </div>
+          <div class="form-group">
+            <label>Network Name (SSID)</label>
+            <input type="text" id="add-ssid" placeholder="Enter network name" />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="add-pass" placeholder="Enter password" />
+          </div>
+          <div
+            class="checkbox-group"
+            style="margin-bottom: 16px"
+            onclick="document.getElementById('add-hidden').click()"
+          >
+            <input
+              type="checkbox"
+              id="add-hidden"
+              onclick="event.stopPropagation()"
+            />
+            <label for="add-hidden">This is a hidden network</label>
+          </div>
+          <button class="btn btn-primary" onclick="addWifi()">
+            💾 Save Network
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="section-header">
+            <div class="section-icon">🔗</div>
+            <span class="section-title">Quick Links</span>
+          </div>
+          <a href="/terminal" class="link-card">
+            <div class="link-card-icon">💻</div>
+            <div class="link-card-content">
+              <div class="link-card-title">Terminal</div>
+              <div class="link-card-desc">Access device console</div>
+            </div>
+            <span class="link-card-arrow">→</span>
+          </a>
+          <a href="/update" class="link-card">
+            <div class="link-card-icon">📦</div>
+            <div class="link-card-content">
+              <div class="link-card-title">OTA Update</div>
+              <div class="link-card-desc">Upload new firmware</div>
+            </div>
+            <span class="link-card-arrow">→</span>
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <nav>
+      <div class="nav-item active" data-page="home">
+        <span class="icon">🏠</span><span>Home</span>
+      </div>
+      <div class="nav-item" data-page="wifi">
+        <span class="icon">📡</span><span>WiFi</span>
+      </div>
+      <div class="nav-item" data-page="config">
+        <span class="icon">⚙️</span><span>Config</span>
+      </div>
+      <a class="nav-item" href="/terminal"
+        ><span class="icon">💻</span><span>Terminal</span></a
+      >
+    </nav>
+
+    <script>
+      // Navigation
+      function switchPage(id) {
+        document
+          .querySelectorAll(".page")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById(id + "-page").classList.add("active");
+        document.querySelector(`[data-page="${id}"]`)?.classList.add("active");
+        if (id === "wifi") scanNetworks();
+      }
+      document.querySelectorAll(".nav-item[data-page]").forEach((el) => {
+        el.addEventListener("click", () => switchPage(el.dataset.page));
+      });
+
+      // Temperature color thresholds
+      function applyTempStyle(value, isValid) {
+        const card = document.getElementById("temp-card");
+        card.classList.remove(
+          "temp-cold",
+          "temp-normal",
+          "temp-warm",
+          "temp-hot",
+          "sensor-invalid",
+        );
+
+        if (!isValid) {
+          card.classList.add("sensor-invalid");
+          return;
+        }
+
+        if (value < 18) {
+          card.classList.add("temp-cold");
+        } else if (value <= 28) {
+          card.classList.add("temp-normal");
+        } else if (value <= 32) {
+          card.classList.add("temp-warm");
+        } else {
+          card.classList.add("temp-hot");
+        }
+      }
+
+      // Humidity color thresholds
+      function applyHumStyle(value, isValid) {
+        const card = document.getElementById("hum-card");
+        card.classList.remove(
+          "hum-low",
+          "hum-normal",
+          "hum-high",
+          "sensor-invalid",
+        );
+
+        if (!isValid) {
+          card.classList.add("sensor-invalid");
+          return;
+        }
+
+        if (value < 40) {
+          card.classList.add("hum-low");
+        } else if (value <= 70) {
+          card.classList.add("hum-normal");
+        } else {
+          card.classList.add("hum-high");
+        }
+      }
+
+      // Update threshold bar marker position
+      function updateTempMarker(value, isValid) {
+        const marker = document.getElementById("temp-marker");
+        if (!isValid || value == null) {
+          marker.style.display = "none";
+          return;
+        }
+        marker.style.display = "block";
+        // Clamp between 0-50, map to 0-100%
+        const clamped = Math.max(0, Math.min(50, value));
+        const percent = (clamped / 50) * 100;
+        marker.style.left = percent + "%";
+      }
+
+      function updateHumMarker(value, isValid) {
+        const marker = document.getElementById("hum-marker");
+        if (!isValid || value == null) {
+          marker.style.display = "none";
+          return;
+        }
+        marker.style.display = "block";
+        // Clamp between 0-100, maps directly to percentage
+        const clamped = Math.max(0, Math.min(100, value));
+        marker.style.left = clamped + "%";
+      }
+
+      // Fetch status from API
+      async function refreshData() {
+        try {
+          const res = await fetch("/api/status");
+          const data = await res.json();
+
+          // Temperature with color coding
+          const tempVal = data.tempValid ? data.temperature?.toFixed(1) : "--";
+          document.getElementById("temp-val").textContent = tempVal;
+          applyTempStyle(data.temperature, data.tempValid);
+          updateTempMarker(data.temperature, data.tempValid);
+
+          // Humidity with color coding
+          const humVal = data.humValid ? data.humidity?.toFixed(1) : "--";
+          document.getElementById("hum-val").textContent = humVal;
+          applyHumStyle(data.humidity, data.humValid);
+          updateHumMarker(data.humidity, data.humValid);
+
+          // Light and other stats
+          document.getElementById("lux-val").textContent = data.luxValid
+            ? data.lux
+            : "--";
+          document.getElementById("uptime-val").textContent =
+            data.uptime || "--";
+          document.getElementById("fw-version").textContent =
+            "FW " + (data.firmware || "-");
+          document.getElementById("node-id").textContent = data.nodeId || "---";
+          document.getElementById("cfg-fw").textContent = data.firmware || "-";
+          document.getElementById("cfg-node").textContent = data.nodeId || "-";
+          document.getElementById("cfg-wifi").textContent = REDACTED
+          document.getElementById("cfg-ip").textContent = data.ip || "-";
+          document.getElementById("cfg-ram").textContent = data.freeHeap
+            ? (data.freeHeap / 1024).toFixed(1) + "K"
+            : "-";
+          document.getElementById("status-dot").classList.add("ok");
+        } catch (e) {
+          console.error("Status fetch failed", e);
+        }
+      }
+
+      // WiFi
+      let networks = [];
+      let selectedSsid = REDACTED
+
+      async function scanNetworks() {
+        const list = document.getElementById("wifi-list");
+        list.innerHTML =
+          '<div class="loading-msg"><div class="spinner"></div><div style="margin-top: 8px;">Scanning for networks...</div></div>';
+        try {
+          const res = await fetch("/networks");
+          const data = await res.json();
+          if (data.scanning) {
+            setTimeout(scanNetworks, 1500);
+            return;
+          }
+          networks = data.networks || [];
+          renderNetworks();
+        } catch (e) {
+          list.innerHTML =
+            '<div class="empty-state"><div class="empty-state-icon">❌</div><div class="empty-state-text">Scan failed. Please try again.</div></div>';
+        }
+      }
+
+      function renderNetworks() {
+        const list = document.getElementById("wifi-list");
+        if (!networks.length) {
+          list.innerHTML =
+            '<div class="empty-state"><div class="empty-state-icon">📶</div><div class="empty-state-text">No networks found</div></div>';
+          return;
+        }
+        networks.sort((a, b) => b.rssi - a.rssi);
+        list.innerHTML = networks
+          .map((n, i) => {
+            const badges = [];
+            if (n.known)
+              badges.push(
+                '<span class="wifi-status-badge saved">✓ Saved</span>',
+              );
+            if (n.open)
+              badges.push(
+                '<span class="wifi-status-badge open">🔓 Open</span>',
+              );
+
+            return `
+                <div class="wifi-item ${selectedSsid === n.ssid ? "selected" : ""}" onclick="selectWifi(${i})">
+                    <div>
+                        <div class="wifi-ssid">${n.ssid}</div>
+                        <div class="wifi-meta">
+                            <span class="network-rssi">📶 ${n.rssi} dBm</span>
+                            ${!n.open ? "🔒" : ""}
+                            ${badges.join(" ")}
+                        </div>
+                    </div>
+                    <div class="wifi-signal">${[1, 2, 3, 4].map((b) => `<span style="height:${b * 5}px" class="${b <= n.bars ? "on" : ""}"></span>`).join("")}</div>
+                </div>`;
+          })
+          .join("");
+      }
+
+      function selectWifi(i) {
+        selectedSsid = REDACTED
+        document.getElementById("selected-ssid").textContent = REDACTED
+        document.getElementById("wifi-form").style.display = REDACTED
+        renderNetworks();
+      }
+
+      async function connectWifi() {
+        if (!selectedSsid) return;
+        const pass = REDACTED
+        const form = new FormData();
+        form.append("REDACTED", selectedSsid);
+        form.append("REDACTED", pass);
+        await fetch("/save", {
+          method: "POST",
+          body: new URLSearchParams(form),
+        });
+        window.location.href = "/connecting";
+      }
+
+      async function connectManual() {
+        const ssid = REDACTED
+        const pass = REDACTED
+        if (!ssid) return;
+        const form = new FormData();
+        form.append("REDACTED", ssid);
+        form.append("REDACTED", pass);
+        await fetch("/save", {
+          method: "POST",
+          body: new URLSearchParams(form),
+        });
+        window.location.href = "/connecting";
+      }
+
+      async function loadSavedNetworks() {
+        const container = document.getElementById("saved-wifi-list");
+        try {
+          const res = await fetch("/api/wifi/saved");
+          const data = await res.json();
+          let html = "";
+
+          const netRow = (label, cred, canForget = false) => {
+            if (!cred) return "";
+            const isOnline = cred.available;
+            const statusClass = isOnline ? "online" : "";
+            const labelBadge = label
+              ? `<span class="wifi-status-badge ${label.toLowerCase() === "primary" ? "connected" : "saved"}">${label}</span>`
+              : "";
+            const hiddenBadge = cred.hidden
+              ? '<span style="font-size:0.7rem;color:var(--muted);">👁️ Hidden</span>'
+              : "";
+            const forgetBtn = canForget
+              ? `<button class="btn-icon danger" onclick="event.stopPropagation();forgetWifi('${cred.ssid}')" title="Forget network">🗑️</button>`
+              : "";
+
+            return `
+                    <div class="saved-network-item">
+                        <div class="saved-network-info">
+                            <div class="saved-network-status ${statusClass}"></div>
+                            <div>
+                                <div class="saved-network-name">${cred.ssid}</div>
+                                <div style="display:flex;gap:8px;margin-top:4px;">
+                                    ${labelBadge}
+                                    ${hiddenBadge}
+                                    <span style="font-size:0.7rem;color:var(--muted);">${cred.rssi || "--"} dBm</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="saved-network-meta">
+                            ${forgetBtn}
+                        </div>
+                    </div>`;
+          };
+
+          html += netRow("Primary", data.primary, false);
+          html += netRow("Secondary", data.secondary, false);
+
+          if (data.saved && data.saved.length > 0) {
+            data.saved.forEach((c) => {
+              html += netRow("", c, true);
+            });
+          }
+
+          if (!html) {
+            container.innerHTML =
+              '<div class="empty-state"><div class="empty-state-icon">📶</div><div class="empty-state-text">No saved networks</div></div>';
+          } else {
+            container.innerHTML = html;
+          }
+        } catch (e) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Failed to load networks</div></div>';
+        }
+      }
+
+      async function forgetWifi(ssid) {
+        if (!confirm("REDACTED" + ssid + "REDACTED")) return;
+        const form = new FormData();
+        form.append("REDACTED", ssid);
+        try {
+          const res = await fetch("/forget", {
+            method: "POST",
+            body: new URLSearchParams(form),
+          });
+          if (res.ok) {
+            loadSavedNetworks();
+          } else {
+            alert("Failed to forget network");
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      }
+
+      async function addWifi() {
+        const ssid = REDACTED
+        const pass = REDACTED
+        const hidden = document.getElementById("add-hidden").checked;
+        if (!ssid) {
+          alert("REDACTED");
+          return;
+        }
+        const form = new FormData();
+        form.append("REDACTED", ssid);
+        form.append("REDACTED", pass);
+        if (hidden) form.append("hidden", "1");
+        try {
+          const res = await fetch("/save", {
+            method: "POST",
+            body: new URLSearchParams(form),
+          });
+          if (res.ok) {
+            document.getElementById("add-ssid").value = REDACTED
+            document.getElementById("add-pass").value = REDACTED
+            document.getElementById("add-hidden").checked = false;
+            loadSavedNetworks();
+            alert("Network saved!");
+          } else {
+            alert("Failed to save network");
+          }
+        } catch (e) {
+          alert("Error: " + e.message);
+        }
+      }
+
+      // Init
+      refreshData();
+      loadSavedNetworks();
+      setInterval(refreshData, 30000);
+    </script>
+  </body>
+</html>

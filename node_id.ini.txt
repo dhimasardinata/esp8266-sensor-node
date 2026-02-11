@@ -1,0 +1,9 @@
+[settings]
+
+gh_id = 2
+node_id = 7
+ota_ip = REDACTED
+gateway_ip =
+firmware_version = 9.9.8
+factory_wifi_pass = REDACTED
+factory_api_token = REDACTED
