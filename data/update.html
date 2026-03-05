@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Firmware Update | GH Node</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #0a0e13;
+      --surface: rgba(26, 31, 38, 0.95);
+      --surface-2: rgba(36, 42, 51, 0.95);
+      --accent: #00d9ff;
+      --accent-secondary: #6366f1;
+      --accent-dim: rgba(0, 217, 255, 0.12);
+      --text: #f0f4f8;
+      --text-secondary: #94a3b8;
+      --muted: #64748b;
+      --success: #10b981;
+      --error: #ef4444;
+      --border: rgba(100, 116, 139, 0.3);
+    }
+
+    html,
+    body {
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(145deg, #0a0e13 0%, #0f1419 50%, #131a22 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    a.back-link {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    a.back-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .header-icon {
+      width: 60px;
+      height: 60px;
+      background: var(--surface-2);
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      font-size: 1.8rem;
+      border: 1px solid var(--border);
+    }
+
+    .header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .form-input {
+      display: block;
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .form-input::placeholder {
+      color: var(--muted);
+    }
+
+    .file-zone {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      background: linear-gradient(145deg, rgba(36, 42, 51, 0.6) 0%, rgba(26, 31, 38, 0.8) 100%);
+      margin-bottom: 24px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .file-zone::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--accent-dim) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .file-zone:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 217, 255, 0.15);
+    }
+
+    .file-zone:hover::after {
+      opacity: 1;
+    }
+
+    .file-zone.has-file {
+      border-color: var(--success);
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
+    }
+
+    .file-zone-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      display: block;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+    }
+
+    .file-zone-text {
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .file-zone-hint {
+      color: var(--muted);
+      font-size: 0.8rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .file-zone-name {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1rem;
+      display: none;
+      position: relative;
+      z-index: 1;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 18px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%);
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0, 217, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .btn:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .progress-section {
+      margin-top: 20px;
+      display: none;
+    }
+
+    .progress-section.show {
+      display: block;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .progress-header span:last-child {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--surface-2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-secondary));
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .status-msg {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-msg.success {
+      display: flex;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--success);
+    }
+
+    .status-msg.error {
+      display: flex;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--error);
+    }
+
+    .warning-box {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      color: #f59e0b;
+      display: flex;
+      gap: 10px;
+    }
+
+    .warning-box span:first-child {
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <a href="/" class="back-link">← Back to Dashboard</a>
+
+  <div class="container">
+    <div class="card">
+      <div class="header">
+        <div class="header-icon">📦</div>
+        <h1>Firmware Update</h1>
+        <p>Upload a new firmware binary file</p>
+      </div>
+
+      <form method="POST" action="/update" enctype="multipart/form-data" id="form">
+        <div class="form-group">
+          <label class="form-label">Admin Password</label>
+          <input class="form-input" id="pass" type="password" name="password" required
+            placeholder="Enter admin password" />
+        </div>
+
+        <label for="file" class="file-zone" id="zone">
+          <span class="file-zone-icon">📁</span>
+          <div class="file-zone-text" id="zone-text">Drop firmware file here or click to browse</div>
+          <div class="file-zone-name" id="zone-name"></div>
+          <div class="file-zone-hint">Accepts .bin files only</div>
+        </label>
+        <input id="file" type="file" name="update" accept=".bin" required />
+
+        <button type="submit" class="btn" id="btn">🚀 Upload & Install</button>
+      </form>
+
+      <div class="progress-section" id="progress">
+        <div class="progress-header">
+          <span>Uploading firmware...</span>
+          <span id="pct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="bar"></div>
+        </div>
+      </div>
+
+      <div class="status-msg" id="status">
+        <span id="status-icon"></span>
+        <span id="status-text"></span>
+      </div>
+
+      <div class="warning-box">
+        <span>⚠️</span>
+        <span>Do not disconnect power or close this page during the update. The device will restart
+          automatically.</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const fileInput = document.getElementById('file');
+    const zone = document.getElementById('zone');
+    const zoneText = document.getElementById('zone-text');
+    const zoneName = document.getElementById('zone-name');
+    const btn = document.getElementById('btn');
+    const progress = document.getElementById('progress');
+    const bar = document.getElementById('bar');
+    const pct = document.getElementById('pct');
+    const status = document.getElementById('status');
+    const statusIcon = document.getElementById('status-icon');
+    const statusText = document.getElementById('status-text');
+
+    fileInput.addEventListener('change', function () {
+      if (this.files.length > 0) {
+        const f = this.files[0];
+        zoneText.style.display = 'none';
+        zoneName.style.display = 'block';
+        zoneName.textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+        zone.classList.add('has-file');
+      } else {
+        zoneText.style.display = 'block';
+        zoneName.style.display = 'none';
+        zone.classList.remove('has-file');
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(e => zone.addEventListener(e, ev => { ev.preventDefault(); zone.style.borderColor = 'var(--accent)'; }));
+    ['dragleave', 'drop'].forEach(e => zone.addEventListener(e, ev => { ev.preventDefault(); zone.style.borderColor = ''; }));
+    zone.addEventListener('drop', e => {
+      if (e.dataTransfer.files.length && e.dataTransfer.files[0].name.endsWith('.bin')) {
+        fileInput.files = e.dataTransfer.files;
+        fileInput.dispatchEvent(new Event('change'));
+      }
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const data = new FormData(this);
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', this.action, true);
+
+      btn.disabled = true;
+      btn.textContent = '⏳ Uploading...';
+      progress.classList.add('show');
+      status.className = 'status-msg';
+
+      xhr.upload.onprogress = function (ev) {
+        if (ev.lengthComputable) {
+          const p = Math.round((ev.loaded / ev.total) * 100);
+          bar.style.width = p + '%';
+          pct.textContent = p + '%';
+        }
+      };
+
+      xhr.onload = function () {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 Upload & Install';
+        if (xhr.status === 200) {
+          bar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
+          statusIcon.textContent = '✅';
+          statusText.textContent = xhr.responseText || 'Update successful! Device is restarting...';
+          status.className = 'status-msg success';
+        } else {
+          bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+          statusIcon.textContent = '❌';
+          statusText.textContent = 'Update failed: ' + (xhr.responseText || 'Unknown error');
+          status.className = 'status-msg error';
+        }
+      };
+
+      xhr.onerror = function () {
+        btn.disabled = false;
+        btn.innerHTML = '🚀 Upload & Install';
+        bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+        statusIcon.textContent = '❌';
+        statusText.textContent = 'Connection error. Please check your network.';
+        status.className = 'status-msg error';
+      };
+
+      xhr.send(data);
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,44 @@
+name: Docs Deploy
+
+on:
+  push:
+    branches: ["main", "master"]
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: docs-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-docs:
+    name: Deploy Docs to Netlify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+
+      - name: Validate docs entrypoint
+        run: |
+          test -f docs/index.html
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: "20"
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli@17
+
+      - name: Deploy docs with Netlify CLI
+        env:
+          NETLIFY_AUTH_TOKEN: REDACTED
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          netlify deploy \
+            --dir docs \
+            --site "$NETLIFY_SITE_ID" \
+            --prod \
+            --message "Docs deploy from ${GITHUB_SHA}"

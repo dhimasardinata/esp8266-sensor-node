@@ -1,0 +1,119 @@
+name: CI & Analysis
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  # --- JOB 1: Build Firmware ---
+  build-and-test:
+    name: Build Firmware
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO & Pip
+        uses: actions/cache@v5.0.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-
+
+      - name: Install PlatformIO Core
+        run: pip install platformio==6.1.15
+
+      - name: Build firmware
+        run: pio run
+
+  # --- JOB 2: Static Analysis (cppcheck + clang-tidy) ---
+  static-analysis:
+    name: Static Analysis (cppcheck + clang-tidy)
+    runs-on: ubuntu-latest
+    needs: build-and-test  # Run only if build succeeds
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Cache PlatformIO & Pip
+        uses: actions/cache@v5.0.0
+        with:
+          path: |
+            ~/.platformio
+            ~/.cache/pip
+          key: ${{ runner.os }}-pio-check-${{ hashFiles('**/platformio.ini') }}
+          restore-keys: |
+            ${{ runner.os }}-pio-check-
+
+      - name: Install PlatformIO Core
+        run: pip install platformio==6.1.15
+
+      - name: Install cppcheck and clang-tidy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck clang-tidy
+
+      - name: Run PlatformIO Static Analysis
+        run: pio check --fail-on-defect=high --skip-packages
+        continue-on-error: true  # Allow workflow to complete even with warnings
+
+      - name: Upload Analysis Results
+        uses: actions/upload-artifact@v6.0.0
+        if: always()
+        with:
+          name: static-analysis-results
+          path: |
+            clang_tidy_fixes.yaml
+          retention-days: 30
+
+  # --- JOB 3: Fault Injection E2E ---
+  fault-injection-e2e:
+    name: Fault Injection E2E
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6.0.0
+        with:
+          node-version: "20"
+
+      - name: Run Cache CRC fault injection E2E
+        run: node test/fault_injection/cache_fault_injection_e2e.js
+

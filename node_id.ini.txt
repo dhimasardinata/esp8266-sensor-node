@@ -1,0 +1,21 @@
+[settings]
+gh_id = 2
+node_id = 8
+ota_ip_1 = REDACTED
+ota_ip_2 = REDACTED
+ota_ip_3 = REDACTED
+ota_ip_4 = REDACTED
+ota_ip_5 = REDACTED
+ota_ip_6 = REDACTED
+ota_ip_7 = REDACTED
+ota_ip_8 = REDACTED
+ota_ip_9 = REDACTED
+ota_ip_10 = REDACTED
+gateway_ip_1 = 192.168.1.100
+gateway_ip_2 = 192.168.1.100
+firmware_version = 9.9.8
+factory_wifi_pass = REDACTED
+factory_api_token = REDACTED
+factory_ota_token = REDACTED
+data_upload_url = https://example.com/api/sensor
+ota_url_base = REDACTED

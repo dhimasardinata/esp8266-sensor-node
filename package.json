@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "chokidar": "5.0.0",
+    "crypto-js": "4.2.0"
+  }
+}

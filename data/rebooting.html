@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Success - Rebooting</title>
+    <meta http-equiv="refresh" content="15;url=http://%HOST_NAME%.local/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #050608;
+        --bg-gradient: linear-gradient(
+          145deg,
+          #050608 0%,
+          #0a0d12 50%,
+          #0f1318 100%
+        );
+        --surface: rgba(20, 25, 32, 0.85);
+        --surface-2: rgba(30, 37, 48, 0.8);
+        --accent: #00d4ff;
+        --accent-rgb: 0, 212, 255;
+        --accent-secondary: #7c3aed;
+        --success: #22c55e;
+        --success-rgb: 34, 197, 94;
+        --text: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --muted: #64748b;
+        --border: rgba(148, 163, 184, 0.12);
+        --radius: 24px;
+        --radius-sm: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      body {
+        background: var(--bg-gradient);
+        position: relative;
+        overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+          radial-gradient(
+            ellipse 60% 40% at 50% 20%,
+            rgba(var(--success-rgb), 0.12) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse 50% 50% at 20% 80%,
+            rgba(var(--accent-rgb), 0.06) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+
+      .card {
+        background: var(--surface);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        padding: 48px 40px;
+        border-radius: var(--radius);
+        text-align: center;
+        max-width: 440px;
+        width: 100%;
+        border: 1px solid var(--border);
+        position: relative;
+        overflow: hidden;
+        box-shadow:
+          0 25px 60px rgba(0, 0, 0, 0.4),
+          0 0 80px rgba(var(--success-rgb), 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(
+          90deg,
+          var(--success),
+          #4ade80,
+          var(--success)
+        );
+      }
+
+      .icon-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 24px;
+      }
+
+      .icon-bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          135deg,
+          rgba(var(--success-rgb), 0.2),
+          rgba(var(--success-rgb), 0.05)
+        );
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+
+        50% {
+          transform: scale(1.1);
+          opacity: 0.7;
+        }
+      }
+
+      .icon {
+        position: relative;
+        font-size: 48px;
+        line-height: 80px;
+        z-index: 1;
+        filter: drop-shadow(0 4px 12px rgba(var(--success-rgb), 0.4));
+      }
+
+      h1 {
+        font-size: 1.6rem;
+        margin-bottom: 12px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(
+          135deg,
+          var(--text) 0%,
+          var(--success) 100%
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      p {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 24px;
+        font-weight: 500;
+      }
+
+      .countdown {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        background: linear-gradient(
+          135deg,
+          rgba(var(--success-rgb), 0.1),
+          rgba(var(--success-rgb), 0.03)
+        );
+        border: 1px solid rgba(var(--success-rgb), 0.2);
+        border-radius: var(--radius-sm);
+        padding: 20px 24px;
+        margin-bottom: 24px;
+      }
+
+      .countdown-num {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--success), #4ade80);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        min-width: 56px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+
+      .countdown-text {
+        text-align: left;
+      }
+
+      .countdown-label {
+        font-size: 0.75rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+
+      .countdown-desc {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: 2px;
+      }
+
+      .redirect-url {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface-2);
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-family: "SF Mono", "Monaco", monospace;
+        font-size: 0.8rem;
+        color: var(--accent);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+      }
+
+      .redirect-url::before {
+        content: "🔗";
+        font-size: 0.9rem;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: var(--muted);
+        padding: 16px 20px;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        text-align: left;
+        line-height: 1.5;
+      }
+
+      .hint-icon {
+        flex-shrink: 0;
+        font-size: 1rem;
+      }
+
+      @media (max-width: 480px) {
+        .card {
+          padding: 40px 28px;
+        }
+
+        h1 {
+          font-size: 1.4rem;
+        }
+
+        .countdown {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .countdown-text {
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="card">
+      <div class="icon-container">
+        <div class="icon-bg"></div>
+        <div class="icon">✓</div>
+      </div>
+      <h1>WiFi Configured!</h1>
+      <p>Your device is rebooting with the new network settings.</p>
+
+      <div class="countdown">
+        <div class="countdown-num" id="countdown">15</div>
+        <div class="countdown-text">
+          <div class="countdown-label">Seconds</div>
+          <div class="countdown-desc">until redirect</div>
+        </div>
+      </div>
+
+      <div class="redirect-url">http://%HOST_NAME%.local/</div>
+
+      <div class="hint">
+        <span class="hint-icon">💡</span>
+        <span
+          >If redirect fails, connect to your WiFi network and visit the address
+          above manually.</span
+        >
+      </div>
+    </div>
+
+    <script>
+      let count = 15;
+      const el = document.getElementById("countdown");
+      setInterval(() => {
+        count--;
+        if (count >= 0) el.textContent = count;
+      }, 1000);
+    </script>
+  </body>
+</html>
+
