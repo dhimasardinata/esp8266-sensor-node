@@ -92,7 +92,7 @@ jobs:
         continue-on-error: true  # Allow workflow to complete even with warnings
 
       - name: Upload Analysis Results
-        uses: actions/upload-artifact@v6.0.0
+        uses: actions/upload-artifact@v7.0.0
         if: always()
         with:
           name: static-analysis-results
