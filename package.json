@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "watchers": "node tools/watch/repo-watchers.js",
+    "watchers:install": "bash ./scripts/install_watchers_service.sh",
+    "watchers:status": "systemctl --user --no-pager --full status node-medini-watchers.service",
+    "watchers:logs": "journalctl --user -u node-medini-watchers.service -n 200 -f"
+  },
+  "dependencies": {
+    "chokidar": "5.0.0",
+    "crypto-js": "4.2.0"
+  }
+}

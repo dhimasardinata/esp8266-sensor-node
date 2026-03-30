@@ -1,0 +1,25 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+      - id: clang-format
+        args: [--style=Google]
+      - id: cppcheck
+        args: [--enable=all, --suppress=missingIncludeSystem, --inline-suppr]
+
+  - repo: local
+    hooks:
+      - id: pio-check
+        name: PlatformIO Static Check
+        entry: pio check --fail-on-defect=medium
+        language: system
+        files: \.(cpp|h|c|hpp)$
+        pass_filenames: REDACTED

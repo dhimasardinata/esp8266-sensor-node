@@ -1,0 +1,46 @@
+---
+Language: Cpp
+Standard: c++20
+BasedOnStyle: Google
+
+# --- Indentation & Spacing ---
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ColumnLimit: 120 # Modern screens are wide; 80 is too restrictive.
+AccessModifierOffset: -2 # Aligns 'public:' with 'class'
+NamespaceIndentation: All # Indents code inside namespaces (cleaner)
+
+# --- Include Sorting (The Fix) ---
+SortIncludes: CaseSensitive # Sorts includes alphabetically
+IncludeBlocks: Regroup # Automatically groups headers (std, lib, local) with newlines
+
+# --- Pointers & References ---
+# Modern C++ prefers 'Type* var' (the pointer is part of the type)
+# Google default is Right ('Type *var'), but Left is more logical in C++.
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+
+# --- Wrapping & Breaking ---
+BreakBeforeBraces: Attach # { on the same line (K&R/One True Brace Style)
+AllowShortFunctionsOnASingleLine: Empty # Only empty functions {} on one line
+AllowShortIfStatementsOnASingleLine: Never # Always break if statements (safer for debugging)
+AllowShortLoopsOnASingleLine: false
+
+# --- Arguments & Parameters ---
+# If args don't fit on one line, stack them vertically (one per line).
+# This makes Git diffs much cleaner.
+BinPackArguments: false
+BinPackParameters: false
+AlignAfterOpenBracket: Align
+
+# --- C++20 Specifics ---
+# Essential for formatting 'requires' clauses and Concepts nicely
+IndentRequiresClause: true
+BreakBeforeConceptDeclarations: true
+SpaceBeforeCpp11BracedList: false
+
+# --- Consistency ---
+FixNamespaceComments: true # Adds // namespace foo at the end automatically
+SortUsingDeclarations: true # Sorts 'using' statements
+KeepEmptyLinesAtTheStartOfBlocks: false

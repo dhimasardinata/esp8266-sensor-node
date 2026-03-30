@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Terminal | GH Node</title>
+  <script>
+    (function () {
+      var storageKey = "gh-node-theme";
+      var storedTheme = null;
+      var prefersDark = false;
+      try {
+        storedTheme = window.localStorage.getItem(storageKey);
+      } catch (e) { }
+      try {
+        prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+      } catch (e) { }
+      var theme =
+        storedTheme === "light" || storedTheme === "dark"
+          ? storedTheme
+          : prefersDark
+            ? "dark"
+            : "light";
+      document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.style.colorScheme = theme;
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./terminal.css" />
+</head>
+
+<body>
+  <div id="header">
+    <div id="header-left">
+      <div class="header-icon">💻</div>
+      <div class="header-info">
+        <div id="title">Live Terminal</div>
+        <div id="node-info">
+          <span id="node-gh">GH-?-?</span>
+          <span id="node-fw">FW: Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="header-right">
+      <div id="status">
+        <div id="status-ind"></div>
+        <div id="status-text">CONNECTING</div>
+      </div>
+      <button id="theme-toggle" class="hdr-btn theme-toggle-btn" data-theme-toggle aria-label="Toggle color theme"
+        title="Toggle color theme">
+        <span class="theme-toggle-icon" aria-hidden="true">☀</span>
+      </button>
+      <button id="clear-btn" class="hdr-btn">🗑️ <span>Clear</span></button>
+      <a href="/" class="hdr-btn back-btn">← <span>Back</span></a>
+    </div>
+  </div>
+
+  <pre id="console" role="log" aria-live="polite" spellcheck="false"></pre>
+
+  <div id="input-bar">
+    <div id="input-inner">
+      <div id="prompt">❯</div>
+      <input id="cmd-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        placeholder="Type command and press Enter..." />
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <script src="./crypto.js"></script>
+  <script src="./terminal.js"></script>
+</body>
+
+</html>

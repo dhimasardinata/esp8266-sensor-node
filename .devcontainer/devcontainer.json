@@ -1,0 +1,17 @@
+{
+    "name": "Node Medini Dev",
+    "image": "mcr.microsoft.com/devcontainers/cpp:default-bullseye",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "platformio.platformio-ide",
+                "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack",
+                "esbenp.prettier-vscode",
+                "dbaeumer.vscode-eslint"
+            ]
+        }
+    },
+    "postCreateCommand": "pip install platformio pre-commit && pre-commit install",
+    "remoteUser": "vscode"
+}

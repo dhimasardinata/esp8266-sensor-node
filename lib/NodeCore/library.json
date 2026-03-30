@@ -1,0 +1,12 @@
+{
+  "name": "NodeCore",
+  "version": "1.0.0",
+  "description": "Core runtime modules for the greenhouse monitoring node firmware.",
+  "build": {
+    "includeDir": ".",
+    "flags": [
+      "-I include"
+    ],
+    "libLDFMode": "deep+"
+  }
+}

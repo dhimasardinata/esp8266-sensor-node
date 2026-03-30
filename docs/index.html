@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="id" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Node Medini — Visualisasi AES & Cache CRC</title>
+  <meta name="description"
+    content="Visualisasi interaktif AES-256-CBC dan mekanisme Cache CRC (RTC + LittleFS + Emergency Queue) untuk firmware Node Medini dengan trace langkah demi langkah." />
+  <link rel="stylesheet" href="./assets/styles.css" />
+</head>
+
+<body>
+  <div class="app-layout">
+    <div class="main-content" id="step-container">
+      <header class="page-header">
+        <div class="header-row">
+          <div>
+            <h1>Visualisasi AES & Cache CRC</h1>
+            <p class="page-header-desc">
+              Alur sederhana untuk memahami proses firmware Node Medini:
+              <code>plaintext + timestamp -> PKCS7 -> AES-CBC -> base64 payload</code>.
+              Fokus utama di 2 menu: <strong>Visualisasi AES</strong> dan
+              <strong>Visualisasi Cache CRC</strong>.
+            </p>
+          </div>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Ganti tema">🌙</button>
+        </div>
+        <div class="tag-row" style="margin-top:8px">
+          <span class="tag">Mode Terminal: iv:cipher</span>
+          <span class="tag">Mode Portal: ENC:iv:cipher</span>
+          <span class="tag">Batas single payload: 144 byte</span>
+          <span class="tag">IV mix firmware: raw + micros + RSSI</span>
+          <span class="tag">Cache CRC: RTC + LittleFS + Emergency Queue</span>
+        </div>
+      </header>
+
+      <div class="main-menu-layout">
+        <aside class="main-menu-sidebar">
+          <p class="main-menu-label">Pilih Visualisasi</p>
+          <nav class="main-tab-switch" aria-label="Top menu visualisasi">
+            <button id="main-tab-aes-btn" class="main-tab-btn active" type="button" data-main-tab-target="main-tab-aes"
+              aria-selected="true">AES-256-CBC</button>
+            <button id="main-tab-cache-btn" class="main-tab-btn" type="button" data-main-tab-target="main-tab-cache"
+              aria-selected="false">Cache CRC32</button>
+          </nav>
+        </aside>
+
+        <div class="main-menu-content">
+      <section id="main-tab-aes" class="main-tab-panel active" aria-labelledby="main-tab-aes-btn">
+      <nav class="tab-switch aes-tab-switch" aria-label="Menu AES">
+        <button id="tab-encrypt-btn" class="tab-btn active" type="button" data-aes-tab-target="tab-encrypt"
+          aria-selected="true">Enkripsi</button>
+        <button id="tab-decrypt-btn" class="tab-btn" type="button" data-aes-tab-target="tab-decrypt"
+          aria-selected="false">Dekripsi</button>
+      </nav>
+
+      <section id="tab-encrypt" class="aes-tab-panel active" aria-labelledby="tab-encrypt-btn">
+        <section class="card" id="section-1">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">1</span>
+              <h2 class="card-title">Input Enkripsi</h2>
+            </div>
+            <p class="card-subtitle">Input bebas + preset. Klik Trace untuk melihat alasan dan langkah proses.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="encrypt-preset-select">Preset Enkripsi</label>
+                <select id="encrypt-preset-select">
+                  <option value="demo">demo (deterministik)</option>
+                  <option value="portal_cmd">portal-command</option>
+                  <option value="ws_long">ws-long-status</option>
+                </select>
+                <button id="encrypt-load-preset-btn" class="btn-ghost" type="button">Muat Preset</button>
+              </div>
+              <div class="why-card">
+                <div class="why-title">Kenapa pakai preset?</div>
+                <p>Preset mempercepat uji coba. Setelah dimuat, semua field tetap bisa diedit bebas.</p>
+              </div>
+            </div>
+
+            <div class="encrypt-layout" style="margin-top:16px">
+              <div class="encrypt-col">
+                <div class="input-pane input-pane-message">
+                  <div class="input-pane-head">
+                    <h3 class="input-pane-title">Pesan</h3>
+                    <span class="field-badge badge-text">TEXT</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="plaintext-input">Plaintext</label>
+                    <textarea id="plaintext-input" class="input-text" spellcheck="false"></textarea>
+                    <small class="payload-limit-note" style="font-size:11px;color:var(--text-quaternary)">
+                      Maksimal single payload: <code style="font-size:10px">144 bytes</code>.
+                      Mode terminal bisa auto/paksa chunking WS.
+                    </small>
+                  </div>
+                  <div class="form-grid timestamp-input-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="timestamp-input">Timestamp Epoch (uint32)</label>
+                      <input id="timestamp-input" type="number" min="0" max="4294967295" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="timestamp-readable-input">Waktu Lokal (input manusia)</label>
+                      <input id="timestamp-readable-input" type="datetime-local" step="1" />
+                    </div>
+                  </div>
+                  <div class="btn-row input-action-row" style="margin-top:0">
+                    <button id="timestamp-now-btn" class="btn-ghost" type="button">Gunakan Waktu Sekarang</button>
+                  </div>
+                  <div class="why-card">
+                    <div class="why-title">Kenapa input ini dibutuhkan?</div>
+                    <p>Payload awal dibentuk dari <code>timestamp(4 byte) + plaintext</code> sebelum padding dan AES.</p>
+                  </div>
+                  <div class="preview-grid preview-grid-main">
+                    <div class="preview-item">
+                      <div class="preview-label">Preview Text</div>
+                      <pre id="plaintext-preview-text" class="mono mono-text"></pre>
+                    </div>
+                    <div class="preview-item">
+                      <div class="preview-label">Representasi Hex</div>
+                      <pre id="plaintext-preview-hex" class="mono mono-hex"></pre>
+                    </div>
+                    <div class="preview-item">
+                      <div class="preview-label">Timestamp -> Text</div>
+                      <pre id="timestamp-preview-text" class="mono mono-text"></pre>
+                    </div>
+                    <div class="preview-item">
+                      <div class="preview-label">Timestamp -> Hex</div>
+                      <pre id="timestamp-preview-hex" class="mono mono-hex"></pre>
+                    </div>
+                    <div class="preview-item preview-item-full">
+                      <div class="preview-label">Gabungan [timestamp + plaintext] -> Text</div>
+                      <pre id="payload-combined-preview-text" class="mono mono-text"></pre>
+                    </div>
+                    <div class="preview-item preview-item-full">
+                      <div class="preview-label">Gabungan [timestamp + plaintext] -> Hex</div>
+                      <pre id="payload-combined-preview-hex" class="mono mono-hex"></pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="encrypt-col">
+                <div class="input-pane input-pane-crypto">
+                  <div class="input-pane-head">
+                    <h3 class="input-pane-title">Parameter Kripto</h3>
+                    <span class="field-badge badge-hex">HEX / KRIPTIK</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="mode-select">Mode Payload</label>
+                    <select id="mode-select">
+                      <option value="terminal">terminal (iv:cipher)</option>
+                      <option value="portal">portal (ENC:iv:cipher)</option>
+                    </select>
+                    <label class="inline-checkbox">
+                      <input id="force-ws-chunking" type="checkbox" />
+                      Paksa trace via chunking WS (mode terminal, walau <=144B)
+                    </label>
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="iv-input">IV Mentah Hex (16 bytes)</label>
+                    <input id="iv-input" class="input-hex" type="text" spellcheck="false" />
+                    <div class="btn-row input-action-row" style="margin-top:0">
+                      <button id="iv-random-btn" class="btn-ghost" type="button">IV Acak</button>
+                    </div>
+                  </div>
+
+                  <div class="form-grid-3 mix-param-grid">
+                    <div class="form-group">
+                      <label class="form-label" for="main-iv-micros-input">Delay/micros untuk Mix</label>
+                      <input id="main-iv-micros-input" type="number" min="0" max="4294967295" />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="main-iv-rssi-input">RSSI untuk Mix (dBm)</label>
+                      <input id="main-iv-rssi-input" type="number" />
+                    </div>
+                    <div class="form-group mix-toggle-group">
+                      <label class="form-label" for="main-iv-mix-enabled">Pakai IV Mix Firmware</label>
+                      <div class="mix-toggle-wrap" style="margin-top:8px">
+                        <button
+                          id="main-iv-mix-toggle"
+                          class="mix-toggle-btn active"
+                          type="button"
+                          aria-pressed="true">IV Mix Aktif</button>
+                        <input id="main-iv-mix-enabled" class="visually-hidden" type="checkbox" checked aria-hidden="true" tabindex="-1" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="why-card">
+                    <div class="why-title">Kenapa IV + Mix ini penting?</div>
+                    <p>IV final dipakai saat enkripsi. Jika mix aktif, IV final dihitung dari raw IV + micros + RSSI seperti firmware.</p>
+                  </div>
+                  <div class="preview-grid preview-grid-iv">
+                    <div class="preview-item">
+                      <div class="preview-label">IV Mentah (Hex)</div>
+                      <pre id="main-iv-raw-preview" class="mono mono-hex"></pre>
+                    </div>
+                    <div class="preview-item">
+                      <div class="preview-label">IV Setelah Mix (Hex)</div>
+                      <pre id="main-iv-mixed-preview" class="mono mono-hex"></pre>
+                    </div>
+                    <div class="preview-item">
+                      <div class="preview-label">IV Mentah -> Teks</div>
+                      <pre id="main-iv-raw-text" class="mono mono-text"></pre>
+                    </div>
+                    <div class="preview-item">
+                      <div class="preview-label">IV Mixed -> Teks</div>
+                      <pre id="main-iv-mixed-text" class="mono mono-text"></pre>
+                    </div>
+                  </div>
+                  <p id="main-iv-mix-meta" class="inline-note"></p>
+                  <div class="preview-grid preview-grid-iv-steps">
+                    <div class="preview-item preview-item-full">
+                      <div class="preview-label">Proses Mix IV (raw + delay/micros + RSSI)</div>
+                      <pre id="main-iv-mix-process" class="mono mono-cryptic"></pre>
+                    </div>
+                    <div class="preview-item preview-item-full">
+                      <div class="preview-label">Perubahan Byte (fokus byte 0..3)</div>
+                      <pre id="main-iv-mix-byte-diff" class="mono mono-hex"></pre>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="epoch-row">
+              <div class="epoch-item">
+                <div class="epoch-item-label">Epoch UTC</div>
+                <pre id="enc-epoch-utc" class="mono"></pre>
+              </div>
+              <div class="epoch-item">
+                <div class="epoch-item-label">Epoch Lokal</div>
+                <pre id="enc-epoch-local" class="mono"></pre>
+              </div>
+              <div class="epoch-item">
+                <div class="epoch-item-label">Relatif</div>
+                <pre id="enc-epoch-relative" class="mono"></pre>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button id="run-btn" class="btn-primary" type="button">Trace Enkripsi</button>
+              <button id="demo-btn" class="btn-secondary" type="button">Reset Demo</button>
+            </div>
+            <div id="input-alert" class="alert-box info" hidden></div>
+          </div>
+        </section>
+
+        <section class="card" id="section-2">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">2</span>
+              <h2 class="card-title">Trace Langkah Enkripsi</h2>
+            </div>
+            <p class="card-subtitle">Langkah proses ditampilkan berurutan dari input sampai output.</p>
+            <p id="encrypt-trace-summary" class="inline-note">Belum ada trace enkripsi.</p>
+            <ul id="encrypt-trace-list" class="status-list trace-list"></ul>
+          </div>
+        </section>
+
+        <section class="card" id="section-3">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">3</span>
+              <h2 class="card-title">Output Enkripsi</h2>
+            </div>
+            <p class="card-subtitle">Output utama mengikuti mode aktif. Output lain ada di detail.</p>
+
+            <div class="output-grid output-main-grid" style="margin-top:12px">
+              <div class="output-item output-item-full output-item-active" id="output-primary-active-wrap">
+                <div class="output-item-header">
+                  <span class="output-item-label" id="output-primary-active-label">Payload Aktif</span>
+                  <button class="copy-btn" data-copy-target="output-primary-active" type="button">Copy</button>
+                </div>
+                <pre id="output-primary-active" class="mono"></pre>
+              </div>
+            </div>
+
+            <details class="inline-settings output-details" id="output-other-details" style="margin-top:10px">
+              <summary>Detail Output Lain</summary>
+              <div class="output-grid" style="margin-top:10px">
+                <div class="output-item">
+                <div class="output-item-header">
+                  <span class="output-item-label">Ciphertext Hex</span>
+                  <button class="copy-btn" data-copy-target="output-ciphertext-hex" type="button">Copy</button>
+                </div>
+                <pre id="output-ciphertext-hex" class="mono"></pre>
+              </div>
+                <div class="output-item">
+                <div class="output-item-header">
+                  <span class="output-item-label">IV Base64</span>
+                  <button class="copy-btn" data-copy-target="output-iv-b64" type="button">Copy</button>
+                </div>
+                <pre id="output-iv-b64" class="mono"></pre>
+              </div>
+                <div class="output-item">
+                <div class="output-item-header">
+                  <span class="output-item-label">Ciphertext Base64</span>
+                  <button class="copy-btn" data-copy-target="output-ct-b64" type="button">Copy</button>
+                </div>
+                <pre id="output-ct-b64" class="mono"></pre>
+              </div>
+                <div class="output-item">
+                <div class="output-item-header">
+                  <span class="output-item-label">Payload Terminal</span>
+                  <button class="copy-btn" data-copy-target="output-terminal" type="button">Copy</button>
+                </div>
+                <pre id="output-terminal" class="mono"></pre>
+              </div>
+                <div class="output-item output-item-full">
+                <div class="output-item-header">
+                  <span class="output-item-label">Payload Portal</span>
+                  <button class="copy-btn" data-copy-target="output-portal" type="button">Copy</button>
+                </div>
+                <pre id="output-portal" class="mono"></pre>
+              </div>
+              </div>
+            </details>
+          </div>
+        </section>
+      </section>
+
+      <section id="tab-decrypt" class="aes-tab-panel" aria-labelledby="tab-decrypt-btn" hidden>
+        <section class="card" id="section-4">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">1</span>
+              <h2 class="card-title">Input Dekripsi</h2>
+            </div>
+            <p class="card-subtitle">Input payload bebas + preset uji sukses/gagal.</p>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="decrypt-preset-select">Preset Dekripsi</label>
+                <select id="decrypt-preset-select">
+                  <option value="valid">valid (timestamp payload cocok)</option>
+                  <option value="replay_fail">replay_fail (payload lama, epoch sekarang)</option>
+                  <option value="invalid_format">invalid_format</option>
+                </select>
+                <button id="decrypt-load-preset-btn" class="btn-ghost" type="button">Muat Preset</button>
+              </div>
+              <div class="why-card">
+                <div class="why-title">Kenapa preset dekripsi?</div>
+                <p>Supaya mudah memahami titik gagal: parse format, replay skew, atau langkah kriptografi lainnya.</p>
+              </div>
+            </div>
+            <p id="decrypt-preset-hint" class="inline-note"></p>
+
+            <div class="form-grid" style="margin-top:16px">
+                <div class="form-group">
+                  <label class="form-label" for="validation-payload">Payload untuk Validasi</label>
+                  <textarea id="validation-payload" class="input-cryptic" spellcheck="false"></textarea>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                <div class="form-group">
+                  <label class="form-label" for="validation-mode">Mode Parse</label>
+                  <select id="validation-mode">
+                    <option value="auto">auto (deteksi prefix ENC:)</option>
+                    <option value="terminal">terminal</option>
+                    <option value="portal">portal</option>
+                  </select>
+                </div>
+
+                <div class="form-grid epoch-input-grid">
+                  <div class="form-group">
+                    <label class="form-label" for="device-epoch-input">Epoch Perangkat</label>
+                    <input id="device-epoch-input" type="number" min="0" max="4294967295" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="device-epoch-readable-input">Waktu Lokal (input manusia)</label>
+                    <input id="device-epoch-readable-input" type="datetime-local" step="1" />
+                  </div>
+                </div>
+                <div class="btn-row input-action-row" style="margin-top:0">
+                  <button id="device-epoch-now-btn" class="btn-ghost" type="button">Sync Waktu Sekarang</button>
+                </div>
+
+                <details class="inline-settings">
+                  <summary>Pengaturan Lanjutan Validasi</summary>
+                  <div class="form-grid" style="margin-top:10px">
+                    <div class="form-group">
+                      <label class="form-label" for="skew-profile">Jendela Skew</label>
+                      <select id="skew-profile">
+                        <option value="strict">strict (30dtk)</option>
+                        <option value="soft">soft (300dtk)</option>
+                        <option value="custom">kustom</option>
+                      </select>
+                    </div>
+                    <div class="form-group" id="skew-custom-wrap" hidden>
+                      <label class="form-label" for="skew-custom-input">Kustom (dtk)</label>
+                      <input id="skew-custom-input" type="number" min="30" max="900" />
+                    </div>
+                  </div>
+                  <label class="inline-checkbox" style="margin-top:8px">
+                    <input id="time-synced-input" type="checkbox" checked />
+                    Jam tersinkronisasi (aktifkan replay check)
+                  </label>
+                </details>
+              </div>
+            </div>
+
+            <div class="epoch-row payload-ts-row">
+              <div class="epoch-item">
+                <div class="epoch-item-label">Timestamp Payload (Epoch)</div>
+                <pre id="payload-ts-epoch" class="mono"></pre>
+              </div>
+              <div class="epoch-item">
+                <div class="epoch-item-label">Timestamp Payload UTC</div>
+                <pre id="payload-ts-utc" class="mono"></pre>
+              </div>
+              <div class="epoch-item">
+                <div class="epoch-item-label">Timestamp Payload Lokal</div>
+                <pre id="payload-ts-local" class="mono"></pre>
+              </div>
+            </div>
+            <p id="payload-ts-note" class="inline-note"></p>
+
+            <div class="epoch-row">
+              <div class="epoch-item">
+                <div class="epoch-item-label">Epoch Perangkat UTC</div>
+                <pre id="val-epoch-utc" class="mono"></pre>
+              </div>
+              <div class="epoch-item">
+                <div class="epoch-item-label">Epoch Perangkat Lokal</div>
+                <pre id="val-epoch-local" class="mono"></pre>
+              </div>
+              <div class="epoch-item">
+                <div class="epoch-item-label">Relatif</div>
+                <pre id="val-epoch-relative" class="mono"></pre>
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button id="validate-btn" class="btn-primary" type="button">Trace Dekripsi</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="section-5">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">2</span>
+              <h2 class="card-title">Trace Langkah Dekripsi</h2>
+            </div>
+            <p class="card-subtitle">Status langkah validasi tampil berurutan (PASS/FAIL).</p>
+            <div id="validation-fail-anchor" hidden></div>
+            <ul id="validation-steps" class="status-list trace-list"></ul>
+            <div id="validation-summary" class="result-box"></div>
+          </div>
+        </section>
+
+        <section class="card" id="section-6">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">3</span>
+              <h2 class="card-title">Output Dekripsi</h2>
+            </div>
+            <p id="decrypt-stage-context-label" class="inline-note"></p>
+            <div class="output-grid" style="margin-top:8px">
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">Mode Parse</span></div>
+                <pre id="decrypt-stage-mode" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">IV (Hex)</span></div>
+                <pre id="decrypt-stage-iv" class="mono"></pre>
+              </div>
+              <div class="output-item output-item-full">
+                <div class="output-item-header"><span class="output-item-label">Ciphertext (Hex)</span></div>
+                <pre id="decrypt-stage-cipher" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">Hasil Dekripsi + Padding</span></div>
+                <pre id="decrypt-stage-padded" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">Tanpa Padding (ts+plain)</span></div>
+                <pre id="decrypt-stage-unpadded" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">Timestamp</span></div>
+                <pre id="decrypt-stage-timestamp" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">Plaintext Hex</span></div>
+                <pre id="decrypt-stage-plaintext-hex" class="mono"></pre>
+              </div>
+              <div class="output-item output-item-full">
+                <div class="output-item-header"><span class="output-item-label">Plaintext UTF-8</span></div>
+                <pre id="decrypt-stage-plaintext-utf8" class="mono"></pre>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <details class="card collapse-card" id="advanced-panel" style="margin-top:18px">
+        <summary>
+          <span class="card-number">ADV</span>
+          <span class="card-title">Advanced Tools</span>
+        </summary>
+        <div class="card-body">
+          <p class="card-text">Fitur lanjutan dipindahkan ke sini agar alur utama tetap sederhana.</p>
+
+          <details class="card collapse-card" id="section-7">
+            <summary>
+              <span class="card-number">A1</span>
+              <span class="card-title">Payload Panjang — Chunking WebSocket</span>
+            </summary>
+            <div class="card-body">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" for="long-preset-select">Preset</label>
+                  <select id="long-preset-select">
+                    <option value="statusJson">status-json</option>
+                    <option value="wsStatusText">ws-status-text</option>
+                  </select>
+                  <button id="load-preset-btn" class="btn-ghost" type="button">Muat Preset</button>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="long-payload-input">Payload Panjang</label>
+                  <textarea id="long-payload-input" spellcheck="false"></textarea>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button id="run-long-btn" class="btn-primary" type="button">Jalankan WS Trace</button>
+                <button id="use-long-to-main-btn" class="btn-ghost" type="button">Gunakan ke Utama</button>
+              </div>
+              <div id="long-alert" class="alert-box info" hidden></div>
+
+              <div class="metrics-row" style="margin-top:16px">
+                <div class="metric-card">
+                  <div class="metric-label">Total Bytes</div>
+                  <div class="metric-value" id="metric-total-bytes">0</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Total Frame</div>
+                  <div class="metric-value" id="metric-total-frames">0</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Total Blok</div>
+                  <div class="metric-value" id="metric-total-blocks">0</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Total Ronde</div>
+                  <div class="metric-value" id="metric-total-rounds">0</div>
+                </div>
+              </div>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Frame</th>
+                      <th>Offset</th>
+                      <th>Panjang Chunk</th>
+                      <th>Blok</th>
+                      <th>Ronde</th>
+                      <th>Timestamp UTC</th>
+                      <th>Payload Terenkripsi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ws-frames-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details class="card collapse-card" id="section-8">
+            <summary>
+              <span class="card-number">A2</span>
+              <span class="card-title">Pipeline Internal & CBC</span>
+            </summary>
+            <div class="card-body">
+              <p id="stage-context-label" class="inline-note"></p>
+              <div class="output-grid" style="margin-top:8px">
+                <div class="output-item output-item-full">
+                  <div class="output-item-header"><span class="output-item-label">Demo Key Context</span></div>
+                  <pre id="key-origin" class="mono"></pre>
+                </div>
+                <div class="output-item output-item-full">
+                  <div class="output-item-header"><span class="output-item-label">Demo Key Masked</span></div>
+                  <pre id="key-demo-mask" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">Plaintext UTF-8</span></div>
+                  <pre id="stage-plaintext" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">Timestamp 4B</span></div>
+                  <pre id="stage-timestamp" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">Payload Pre-padding</span></div>
+                  <pre id="stage-payload" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">Payload Padded</span></div>
+                  <pre id="stage-padded" class="mono"></pre>
+                </div>
+              </div>
+              <p id="stage-meta" class="inline-note"></p>
+
+              <p id="cbc-context-label" class="inline-note" style="margin-top:16px"></p>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Blok</th>
+                      <th>Blok Plain (Hex)</th>
+                      <th>Sumber CBC</th>
+                      <th>XOR -> Input AES</th>
+                      <th>Blok Cipher (Hex)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cbc-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details class="card collapse-card" id="section-9">
+            <summary>
+              <span class="card-number">A3</span>
+              <span class="card-title">Inspektor Ronde Enkripsi</span>
+            </summary>
+            <div class="card-body">
+              <div class="inspector-row">
+                <select id="scenario-select" aria-label="Skenario">
+                  <option value="single">single</option>
+                  <option value="ws-short">ws-short</option>
+                  <option value="ws">ws-long</option>
+                </select>
+                <select id="frame-select" aria-label="Frame"></select>
+                <select id="block-select" aria-label="Blok"></select>
+                <select id="round-select" aria-label="Ronde"></select>
+                <button id="toggle-compact-btn" class="btn-ghost" type="button">Ringkas</button>
+              </div>
+              <p id="round-context-label" class="inline-note"></p>
+              <p id="round-title" class="inline-note" style="font-weight:600"></p>
+              <p id="round-note" class="inline-note"></p>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Langkah</th>
+                      <th>State Hex (16B)</th>
+                      <th>Matriks State 4x4</th>
+                      <th>Tujuan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="round-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details class="card collapse-card" id="section-10">
+            <summary>
+              <span class="card-number">A4</span>
+              <span class="card-title">Inspektor CBC & Ronde Dekripsi</span>
+            </summary>
+            <div class="card-body">
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Blok</th>
+                      <th>Blok Cipher</th>
+                      <th>Sumber CBC</th>
+                      <th>Output AES-INV</th>
+                      <th>Blok Plain</th>
+                    </tr>
+                  </thead>
+                  <tbody id="decrypt-cbc-body"></tbody>
+                </table>
+              </div>
+
+              <p class="inline-note" style="margin-top:16px;font-weight:600">Inspektor Ronde Dekripsi</p>
+              <div class="inspector-row">
+                <select id="decrypt-scenario-select" aria-label="Skenario dekripsi">
+                  <option value="single">single</option>
+                  <option value="ws-short">ws-short</option>
+                  <option value="ws">ws-long</option>
+                </select>
+                <select id="decrypt-frame-select" aria-label="Frame dekripsi"></select>
+                <select id="decrypt-block-select" aria-label="Blok dekripsi"></select>
+                <select id="decrypt-round-select" aria-label="Ronde dekripsi"></select>
+                <button id="decrypt-compact-btn" class="btn-ghost" type="button">Ringkas</button>
+              </div>
+              <p id="decrypt-round-context-label" class="inline-note"></p>
+              <p id="decrypt-round-title" class="inline-note" style="font-weight:600"></p>
+              <p id="decrypt-round-note" class="inline-note"></p>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Langkah</th>
+                      <th>State Hex (16B)</th>
+                      <th>Matriks State 4x4</th>
+                      <th>Tujuan</th>
+                    </tr>
+                  </thead>
+                  <tbody id="decrypt-round-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details class="card collapse-card" id="section-11">
+            <summary>
+              <span class="card-number">A5</span>
+              <span class="card-title">IV Entropy Mix — Simulasi Firmware</span>
+            </summary>
+            <div class="card-body">
+              <div class="form-grid-3">
+                <div class="form-group">
+                  <label class="form-label" for="iv-raw-input">IV Mentah (Hex)</label>
+                  <input id="iv-raw-input" type="text" spellcheck="false" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="iv-micros-input">micros() (uint32)</label>
+                  <input id="iv-micros-input" type="number" min="0" max="4294967295" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="iv-rssi-input">WiFi.RSSI() (dBm)</label>
+                  <input id="iv-rssi-input" type="number" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button id="iv-run-btn" class="btn-primary" type="button">Hitung IV Mix</button>
+                <button id="iv-use-current-btn" class="btn-ghost" type="button">Pakai IV Utama</button>
+                <button id="use-ivmix-to-main-btn" class="btn-ghost" type="button">Gunakan ke Utama</button>
+              </div>
+              <div id="iv-alert" class="alert-box info" hidden></div>
+              <div class="output-grid" style="margin-top:12px">
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">IV Sebelum (hex)</span></div>
+                  <pre id="iv-before-hex" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">IV Sebelum (base64)</span></div>
+                  <pre id="iv-before-b64" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">IV Setelah Mix (hex)</span></div>
+                  <pre id="iv-after-hex" class="mono"></pre>
+                </div>
+                <div class="output-item">
+                  <div class="output-item-header"><span class="output-item-label">IV Setelah Mix (base64)</span></div>
+                  <pre id="iv-after-b64" class="mono"></pre>
+                </div>
+              </div>
+              <p id="iv-masks" class="inline-note"></p>
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Byte</th>
+                      <th>Sebelum</th>
+                      <th>Mask XOR</th>
+                      <th>Sesudah</th>
+                      <th>Sumber</th>
+                    </tr>
+                  </thead>
+                  <tbody id="iv-byte-diff-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <details class="card collapse-card" id="section-12">
+            <summary>
+              <span class="card-number">A6</span>
+              <span class="card-title">Tes Penerimaan Self-check</span>
+            </summary>
+            <div class="card-body">
+              <p class="card-text">Validasi vektor deterministik, dekripsi, chunking payload panjang, dan formula IV mix.</p>
+              <div class="btn-row">
+                <button id="selfcheck-btn" class="btn-ghost" type="button">Jalankan Self-check</button>
+              </div>
+              <ul id="selfcheck-results" class="status-list"></ul>
+            </div>
+          </details>
+
+          <section class="card" id="section-ref" style="margin-top:12px">
+            <div class="card-body">
+              <div class="card-header">
+                <h2 class="card-title">Referensi Firmware</h2>
+              </div>
+              <p class="footer-ref" style="margin-top:8px">
+                <code>lib/NodeCore/support/CryptoUtils.cpp</code>
+                <code>lib/NodeCore/support/CryptoUtils.h</code>
+                <code>lib/NodeCore/support/Utils.cpp</code>
+                <code>lib/NodeCore/terminal/DiagnosticsTerminal.Commands.cpp</code>
+                <code>data/terminal.html</code>
+                <code>data/portal.html</code>
+                <code>include/config/constants.h</code>
+              </p>
+            </div>
+          </section>
+        </div>
+      </details>
+      </section>
+
+      <section id="main-tab-cache" class="main-tab-panel" aria-labelledby="main-tab-cache-btn" hidden>
+        <section class="card" id="cache-section-1">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">1</span>
+              <h2 class="card-title">Input & Aksi Cache CRC</h2>
+            </div>
+            <p class="card-subtitle">
+              Visualisasi mekanisme caching no-drop: RTC, LittleFS, Emergency Queue, dan backpressure.
+            </p>
+
+            <nav class="tab-switch cache-subtab-switch" aria-label="Subtab Cache CRC">
+              <button id="cache-subtab-rtc-btn" class="tab-btn active" type="button" data-cache-tab-target="cache-subtab-rtc"
+                aria-selected="true">RTC</button>
+              <button id="cache-subtab-littlefs-btn" class="tab-btn" type="button" data-cache-tab-target="cache-subtab-littlefs"
+                aria-selected="false">LittleFS</button>
+            </nav>
+
+            <div class="form-grid cache-config-grid" style="margin-top:14px">
+              <div class="form-group">
+                <label class="form-label" for="cache-scale-mode">Skala Simulasi</label>
+                <select id="cache-scale-mode">
+                  <option value="visual">visual (default ringan)</option>
+                  <option value="firmware">firmware-real (17 RTC, 100KB cache)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="cache-preset-select">Preset Cache CRC</label>
+                <select id="cache-preset-select">
+                  <option value="normal_ok">normal_ok</option>
+                  <option value="crc_mismatch">crc_mismatch</option>
+                  <option value="magic_corrupt_salvage">magic_corrupt_salvage</option>
+                  <option value="sync_loss_rescan">sync_loss_rescan</option>
+                </select>
+                <button id="cache-load-preset-btn" class="btn-ghost" type="button">Muat Preset</button>
+              </div>
+            </div>
+            <p id="cache-preset-note" class="inline-note"></p>
+
+            <div class="btn-row cache-main-action-row">
+              <button id="cache-auto-flush-toggle" class="btn-ghost" type="button" aria-pressed="true">Auto Flush RTC->LittleFS Aktif</button>
+              <button id="cache-flush-btn" class="btn-primary" type="button">Flush Sekarang</button>
+            </div>
+            <div id="cache-input-alert" class="alert-box info" hidden></div>
+
+            <section id="cache-subtab-rtc" class="cache-subtab-panel active" aria-labelledby="cache-subtab-rtc-btn">
+              <div class="form-grid-3 cache-rtc-grid" style="margin-top:14px">
+                <div class="form-group">
+                  <label class="form-label" for="rtc-ts-epoch-input">Timestamp Epoch</label>
+                  <input id="rtc-ts-epoch-input" type="number" min="0" max="4294967295" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="rtc-ts-local-input">Waktu Lokal (sync)</label>
+                  <input id="rtc-ts-local-input" type="datetime-local" step="1" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="rtc-temp10-input">temp10 (x10 C)</label>
+                  <input id="rtc-temp10-input" type="number" min="-1000" max="1000" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="rtc-hum10-input">hum10 (x10 %)</label>
+                  <input id="rtc-hum10-input" type="number" min="-1000" max="2000" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="rtc-lux-input">lux</label>
+                  <input id="rtc-lux-input" type="number" min="0" max="65535" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="rtc-rssi-input">rssi (dBm)</label>
+                  <input id="rtc-rssi-input" type="number" min="-127" max="0" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button id="rtc-append-btn" class="btn-primary" type="button">Append</button>
+                <button id="rtc-peek-btn" class="btn-ghost" type="button">Peek</button>
+                <button id="rtc-pop-btn" class="btn-ghost" type="button">Pop</button>
+                <button id="rtc-clear-btn" class="btn-ghost" type="button">Clear RTC</button>
+              </div>
+              <div class="btn-row">
+                <button id="rtc-inject-magic-btn" class="btn-ghost" type="button">Inject Magic Invalid</button>
+                <button id="rtc-inject-crc-btn" class="btn-ghost" type="button">Inject CRC Mismatch</button>
+                <button id="rtc-inject-boundary-btn" class="btn-ghost" type="button">Inject Boundary Corrupt</button>
+              </div>
+              <div class="btn-row">
+                <button id="rtc-sim-fallback-ok-btn" class="btn-ghost" type="button">Simulasi RTC Fail -> LittleFS OK</button>
+                <button id="rtc-sim-fallback-both-fail-btn" class="btn-ghost" type="button">Simulasi RTC + LittleFS Gagal -> Emergency Queue</button>
+              </div>
+            </section>
+
+            <section id="cache-subtab-littlefs" class="cache-subtab-panel" aria-labelledby="cache-subtab-littlefs-btn" hidden>
+              <div class="form-grid" style="margin-top:14px">
+                <div class="form-group">
+                  <label class="form-label" for="fs-payload-input">Payload untuk Write</label>
+                  <textarea id="fs-payload-input" class="input-cryptic" spellcheck="false"></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="fs-read-buffer-input">Buffer size saat read_one</label>
+                  <input id="fs-read-buffer-input" type="number" min="16" max="4096" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button id="fs-write-btn" class="btn-primary" type="button">Write</button>
+                <button id="fs-read-btn" class="btn-ghost" type="button">Read One</button>
+                <button id="fs-pop-btn" class="btn-ghost" type="button">Pop One</button>
+                <button id="fs-clear-btn" class="btn-ghost" type="button">Clear LittleFS</button>
+              </div>
+              <div class="btn-row">
+                <button id="fs-inject-crc-btn" class="btn-ghost" type="button">Inject CRC Mismatch</button>
+                <button id="fs-inject-magic-btn" class="btn-ghost" type="button">Inject Magic Corrupt (Salvage)</button>
+                <button id="fs-inject-sync-btn" class="btn-ghost" type="button">Inject Sync-Loss/Noise</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="card" id="cache-section-2">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">2</span>
+              <h2 class="card-title">Trace Langkah Cache CRC</h2>
+            </div>
+            <p id="cache-trace-summary" class="inline-note">Belum ada trace cache.</p>
+            <ul id="cache-trace-list" class="status-list trace-list"></ul>
+          </div>
+        </section>
+
+        <section class="card" id="cache-section-3">
+          <div class="card-body">
+            <div class="card-header">
+              <span class="card-number">3</span>
+              <h2 class="card-title">Output & State Cache</h2>
+            </div>
+
+            <div class="output-grid cache-output-grid" style="margin-top:10px">
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">State RTC Manager</span></div>
+                <pre id="cache-rtc-state" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">State LittleFS Cache</span></div>
+                <pre id="cache-fs-state" class="mono"></pre>
+              </div>
+              <div class="output-item">
+                <div class="output-item-header"><span class="output-item-label">State Emergency Queue</span></div>
+                <pre id="cache-emergency-state" class="mono"></pre>
+              </div>
+              <div class="output-item output-item-full">
+                <div class="output-item-header">
+                  <span class="output-item-label">Hasil Read Terakhir</span>
+                  <span id="cache-last-error-badge" class="status-badge info">NONE</span>
+                </div>
+                <pre id="cache-last-read" class="mono"></pre>
+              </div>
+            </div>
+
+            <div class="cache-meter-grid" style="margin-top:12px">
+              <div class="cache-meter-card">
+                <div class="cache-meter-title">Occupancy RTC</div>
+                <div class="cache-meter-track"><div id="cache-rtc-occupancy-bar" class="cache-meter-fill"></div></div>
+                <p id="cache-rtc-occupancy-label" class="inline-note"></p>
+              </div>
+              <div class="cache-meter-card">
+                <div class="cache-meter-title">Occupancy LittleFS</div>
+                <div class="cache-meter-track"><div id="cache-fs-occupancy-bar" class="cache-meter-fill"></div></div>
+                <p id="cache-fs-occupancy-label" class="inline-note"></p>
+              </div>
+            </div>
+
+            <details id="cache-crc-detail" class="inline-settings" style="margin-top:12px">
+              <summary>Detail CRC (expand)</summary>
+              <pre id="cache-crc-detail-content" class="mono mono-hex" style="margin-top:10px"></pre>
+            </details>
+          </div>
+        </section>
+      </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./assets/aes_trace.js"></script>
+  <script src="./assets/cache_crc_trace.js"></script>
+  <script src="./assets/app.js"></script>
+</body>
+
+</html>
