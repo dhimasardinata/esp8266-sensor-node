@@ -1,11 +1,11 @@
 # Greenhouse Node Firmware
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/2aef33ec197842f79a318e64445ad0b8)](https://app.codacy.com?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![CI Status](https://github.com/DhimasArdinata/node-medini/actions/workflows/ci.yml/badge.svg)](https://github.com/DhimasArdinata/node-medini/actions)
-[![Docs Deployment](https://img.shields.io/github/deployments/DhimasArdinata/node-medini/production-docs?label=Docs&logo=netlify)](https://node-medini.netlify.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Firmware untuk node sensor monitoring greenhouse berbasis ESP8266 (Wemos D1 Mini / NodeMCU). Proyek ini dirancang untuk keandalan, keamanan, dan pemeliharaan jangka panjang, dengan fokus pada praktik rekayasa perangkat lunak modern untuk sistem embedded.
+
+**Portfolio:** <https://dhimasardinata.netlify.app/>
 
 ---
 
